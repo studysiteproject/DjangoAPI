@@ -76,9 +76,10 @@ class BoardCreateView(APIView):
                 return Response(msg, status=status.HTTP_400_BAD_REQUEST)
             
             # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
-            if len(post_data[key]) < Board._meta.get_field(key).max_length:
-                msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
-                return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            if Board._meta.get_field(key).max_length != None:
+                if len(post_data[key]) < Board._meta.get_field(key).max_length:
+                    msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
+                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         Board.objects.create(title=post_data['title'], content=post_data['content'], author=post_data['author'])
 
@@ -110,9 +111,10 @@ class BoardUpdateView(APIView):
                 return Response(msg, status=status.HTTP_400_BAD_REQUEST)
             
             # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
-            if len(post_data[key]) < Board._meta.get_field(key).max_length:
-                msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
-                return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            if Board._meta.get_field(key).max_length != None:
+                if len(post_data[key]) < Board._meta.get_field(key).max_length:
+                    msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
+                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         board = self.get_object()
 
