@@ -77,6 +77,8 @@ class BoardCreateView(APIView):
             
             # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
             if Board._meta.get_field(key).max_length != None:
+                print(post_data)
+                print("{} : {}".format(key, Board._meta.get_field(key).max_length))
                 if len(post_data[key]) < Board._meta.get_field(key).max_length:
                     msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
                     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
