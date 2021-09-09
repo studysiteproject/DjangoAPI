@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Create your views here.
 @api_view(['GET'])
 def helloAPI(request):
-    return Response("hello world")
+    return Response("CI/CD TEST 0909 프로젝트 회의")
 
 # 게시글 리스트 확인 페이지에서 사용할 클래스
 class BoardListView(APIView):
