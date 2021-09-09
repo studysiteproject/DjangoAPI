@@ -32,7 +32,7 @@ class BoardListView(APIView):
         boards = self.get_object()
 
         serializer = BoardSerializer(boards, many=True)
-        return Response(serializer.data)       
+        return Response(serializer.data, status=status.HTTP_200_OK)       
 
 # 게시글 상세 페이지에서 사용할 클래스
 class BoardDetailView(APIView):
@@ -53,10 +53,10 @@ class BoardDetailView(APIView):
 
         if not board:
             msg = {'state': 'fail', 'detail': 'invalid board_id'}
-            return Response(msg, status=status.HTTP_200_OK)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = BoardSerializer(board)
-        return Response(serializer.data)   
+        return Response(serializer.data, status=status.HTTP_200_OK)   
 
 # 게시글 생성에서 사용할 클래스
 class BoardCreateView(APIView): 
@@ -69,13 +69,21 @@ class BoardCreateView(APIView):
         post_data = {key: request.POST.get(key) for key in ('title', 'content', 'author')}
 
         for key in post_data:
+            
+            # 입력된 데이터가 존재하지 않을 때
             if not post_data[key]:
-                raise Http404('No Data For {}'.format(key))
+                msg = {'state': 'fail', 'detail': 'No Data For {}'.format(key)}
+                return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
+            if post_data[key] < Board._meta.get_field(key).max_length:
+                msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
+                return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         Board.objects.create(title=post_data['title'], content=post_data['content'], author=post_data['author'])
 
         msg = {'state': 'success'}
-        return Response(msg, status=status.HTTP_200_OK)
+        return Response(msg, status=status.HTTP_201_CREATED)
 
 # 게시글 수정에서 사용할 클래스
 class BoardUpdateView(APIView):
@@ -95,14 +103,22 @@ class BoardUpdateView(APIView):
         post_data = {key: request.POST.get(key) for key in ('title', 'content', 'author')}
 
         for key in post_data:
+            
+            # 입력된 데이터가 존재하지 않을 때
             if not post_data[key]:
-                raise Http404('No Data For {}'.format(key))
+                msg = {'state': 'fail', 'detail': 'No Data For {}'.format(key)}
+                return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
+            if post_data[key] < Board._meta.get_field(key).max_length:
+                msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
+                return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         board = self.get_object()
 
         if not board:
             msg = {'state': 'fail', 'detail': 'invalid board_id'}
-            return Response(msg, status=status.HTTP_200_OK)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         for key, value in post_data.items():
             setattr(board, key, value)
@@ -110,7 +126,7 @@ class BoardUpdateView(APIView):
         board.save()
 
         msg = {'state': 'success'}
-        return Response(msg, status=status.HTTP_200_OK)
+        return Response(msg, status=status.HTTP_201_CREATED)
 
 # 게시글 삭제에서 사용할 클래스
 class BoardDeleteView(APIView):
@@ -132,7 +148,7 @@ class BoardDeleteView(APIView):
 
         if not board:
             msg = {'state': 'fail', 'detail': 'invalid board_id'}
-            return Response(msg, status=status.HTTP_200_OK)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         board.delete()
 
