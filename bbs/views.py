@@ -76,7 +76,7 @@ class BoardCreateView(APIView):
                 return Response(msg, status=status.HTTP_400_BAD_REQUEST)
             
             # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
-            if post_data[key] < Board._meta.get_field(key).max_length:
+            if len(post_data[key]) < Board._meta.get_field(key).max_length:
                 msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
                 return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
@@ -103,14 +103,14 @@ class BoardUpdateView(APIView):
         post_data = {key: request.POST.get(key) for key in ('title', 'content', 'author')}
 
         for key in post_data:
-            
+
             # 입력된 데이터가 존재하지 않을 때
             if not post_data[key]:
                 msg = {'state': 'fail', 'detail': 'No Data For {}'.format(key)}
                 return Response(msg, status=status.HTTP_400_BAD_REQUEST)
             
             # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
-            if post_data[key] < Board._meta.get_field(key).max_length:
+            if len(post_data[key]) < Board._meta.get_field(key).max_length:
                 msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
                 return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
