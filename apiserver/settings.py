@@ -94,8 +94,8 @@ DATABASES = {
         'NAME': 'member',
         'USER': 'root',
         'PASSWORD': 'password1!',
-        # 'HOST': '52.78.216.119',
-        'HOST': 'projectdatabase.chu2aut3rs5k.ap-northeast-2.rds.amazonaws.com',
+        'HOST': '52.78.216.119',
+        # 'HOST': 'projectdatabase.chu2aut3rs5k.ap-northeast-2.rds.amazonaws.com',
         'PORT': '3306',
     }    
 }
