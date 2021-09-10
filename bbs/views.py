@@ -6,13 +6,6 @@ from rest_framework.views import APIView
 
 from .models import Board
 from .serializers import BoardSerializer
-from django.http import Http404
-
-# 로그
-import logging
-
-# 로그 인스턴스 가져오기
-logger = logging.getLogger(__name__)
 
 # Create your views here.
 @api_view(['GET'])
