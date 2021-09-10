@@ -19,4 +19,5 @@ from django.contrib import admin
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('bbs/', include('bbs.urls')),
+    path('user/', include('manageuser.urls')),
 ]

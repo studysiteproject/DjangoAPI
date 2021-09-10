@@ -1,7 +1,6 @@
-from django.urls import path, include
-from django.urls.resolvers import URLPattern
+from django.urls import path
 from .views import helloAPI
-from .views import BoardListView, BoardDetailView, BoardCreateView, BoardUpdateView, BoardDeleteView
+from .views import *
 
 urlpatterns = [
     path('hello/', helloAPI),
