@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'bbs',
+    'manageuser',
     'rest_framework',
 ]
 
@@ -88,11 +89,13 @@ DATABASES = {
     #     'NAME': BASE_DIR / 'db.sqlite3',
     # },
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sitedb',
+        # 'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'mysql.connector.django',
+        'NAME': 'member',
         'USER': 'root',
         'PASSWORD': 'password1!',
-        'HOST': '52.78.216.119',
+        # 'HOST': '52.78.216.119',
+        'HOST': 'projectdatabase.chu2aut3rs5k.ap-northeast-2.rds.amazonaws.com',
         'PORT': '3306',
     }    
 }
