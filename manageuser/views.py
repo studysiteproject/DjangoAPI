@@ -58,7 +58,7 @@ class UserCreateView(APIView):
         for key in post_data:
             
             # 만약 NULL 값이 허용되지 않는 필드일 때
-            if User._meta.get_field(key).null == False:
+            if User._meta.get_field(key).empty_strings_allowed == False:
 
                 # 입력된 데이터가 존재하지 않을 때
                 if not post_data[key]:
