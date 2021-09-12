@@ -38,9 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'bbs',
-    # 'manageuser',
-    # 'auth_user',
+    'bbs',
+    'manageuser',
+    'authuser',
     'rest_framework',
 ]
 
