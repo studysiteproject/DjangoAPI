@@ -75,8 +75,12 @@ def verify_refresh_token(refresh_token):
 def register_refresh_token(refresh_token, index):
     
     get_user_index = User.objects.get(id=index)
-    refresh_object = Refresh.objects.get(user_index=int(index))
 
+    try:
+        refresh_object = Refresh.objects.get(user_index=index)
+    except:
+        pass
+    
     # 삭제 후 재 생성
     if refresh_object:
         refresh_object.delete()
