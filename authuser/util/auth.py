@@ -49,7 +49,7 @@ def verify_token(token, index):
     else:
         return True
 
-def create_refresh_token(index):
+def create_refresh_token():
 
     payload = {}
     payload['exp'] = datetime.datetime.utcnow() + datetime.timedelta(days=REFRESH_TOKEN_EXP)
