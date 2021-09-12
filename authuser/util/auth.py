@@ -78,12 +78,9 @@ def register_refresh_token(refresh_token, index):
 
     try:
         refresh_object = Refresh.objects.get(user_index=index)
+        refresh_object.delete()
     except:
         pass
-    
-    # 삭제 후 재 생성
-    if refresh_object:
-        refresh_object.delete()
 
     Refresh.objects.create(
             user_index=get_user_index,
