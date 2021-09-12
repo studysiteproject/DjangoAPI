@@ -5,6 +5,9 @@ import string, random
 from ..models import Refresh
 from manageuser.models import User
 
+import logging
+logger = logging.getLogger(__name__)
+
 PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDhNtVNetb9y/OtT7lAOtfz17+m
 vCZqa2uXPlGV2f1ECj2UEAbI/qU+dgMreveSgb+GRDGQngGPe+vNfLdm61UVXSpC
@@ -23,6 +26,8 @@ def create_token(payload):
     
     payload['exp'] = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
 
+    logger.info(payload)
+
     try:
         token = jwt.encode(
             payload,
@@ -30,7 +35,7 @@ def create_token(payload):
             algorithm = "RS256"
         )
     except:
-        return payload
+        return False
 
     return token
 
