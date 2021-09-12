@@ -50,9 +50,12 @@ class UserLogin(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = UserSerializer(user)
-        
+        payload = {
+            'user_id': serializer.data['user_id']
+            }
+
         # JWT 토큰 생성
-        access_token = create_token(serializer.data)
+        access_token = create_token(payload)
         refresh_token = create_refresh_token()
         user_index = serializer.data['id']
 
