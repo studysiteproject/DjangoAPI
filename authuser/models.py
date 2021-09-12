@@ -1,4 +1,3 @@
-from auth.util.auth import REFRESH_TOKEN_EXP
 from django.db import models
 
 # Create your models here.
