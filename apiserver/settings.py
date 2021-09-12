@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bbs',
     'manageuser',
+    'auth',
     'rest_framework',
 ]
 
