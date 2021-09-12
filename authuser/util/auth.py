@@ -25,28 +25,23 @@ def create_token(payload):
 
     # print(SECRET_FILE_DATA['PRIVATE_KEY'], flush=True)
 
-
-    token = jwt.encode(
-        payload,
-        SECRET_FILE_DATA['PRIVATE_KEY'],
-        algorithm = "RS256"
-    )
-
+    try:
+        token = jwt.encode(
+            payload,
+            SECRET_FILE_DATA['PRIVATE_KEY'],
+            algorithm = "RS256"
+        )
+    except Exception as e:
+        print("ERROR NAME : {}".format(e))
+        return False
 
     return token
 
 def verify_token(token, index):
     try:
         jwt.decode(token, PUBLIC_KEY, algorithms='RS256')
-    except jwt.ExpiredSignatureError:
-        
-        # index를 사용한 DB reflash token 조회
-
-        # return status.HTTP_401_UNAUTHORIZED
-        return False
-
-    except jwt.InvalidTokenError:
-        # return status.HTTP_401_UNAUTHORIZED
+    except Exception as e:
+        print("ERROR NAME : {}".format(e))
         return False
     else:
         return True
@@ -62,7 +57,8 @@ def create_refresh_token():
             SECRET_FILE_DATA['PRIVATE_KEY'],
             algorithm = "RS256"
         )
-    except:
+    except Exception as e:
+        print("ERROR NAME : {}".format(e))
         return False
 
     return refresh_token
@@ -70,11 +66,8 @@ def create_refresh_token():
 def verify_refresh_token(refresh_token):
     try:
         jwt.decode(refresh_token, PUBLIC_KEY, algorithms='RS256')
-    except jwt.ExpiredSignatureError:
-        # return status.HTTP_401_UNAUTHORIZED
-        return False
-    except jwt.InvalidTokenError:
-        # return status.HTTP_401_UNAUTHORIZED
+    except Exception as e:
+        print("ERROR NAME : {}".format(e))
         return False
     else:
         return True
