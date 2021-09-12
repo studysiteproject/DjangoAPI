@@ -61,9 +61,13 @@ class UserLogin(APIView):
 
         # JWT refresh 토큰 DB 등록
         register_refresh_token(refresh_token, user_index)
-
+        
+        # 반환 메세지 설정
         msg = {'state': 'success'}
         res = Response(msg, status=status.HTTP_200_OK)
+
+        # 쿠키 값 설정
         res.set_cookie('access_token', access_token)
+        res.set_cookie('index', user_index)
 
         return res

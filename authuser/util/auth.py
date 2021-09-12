@@ -23,8 +23,6 @@ def create_token(payload):
     
     payload['exp'] = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
 
-    # print(SECRET_FILE_DATA['PRIVATE_KEY'], flush=True)
-
     try:
         token = jwt.encode(
             payload,
@@ -75,6 +73,8 @@ def verify_refresh_token(refresh_token):
 def register_refresh_token(refresh_token, index):
     
     get_user_index = User.objects.get(id=index)
+
+    print(get_user_index, flush=True)
 
     Refresh.objects.create(
             user_index=get_user_index,
