@@ -23,16 +23,15 @@ def create_token(payload):
     
     payload['exp'] = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
 
-    print(SECRET_FILE_DATA['PRIVATE_KEY'], flush=True)
+    # print(SECRET_FILE_DATA['PRIVATE_KEY'], flush=True)
 
-    try:
-        token = jwt.encode(
-            payload,
-            SECRET_FILE_DATA['PRIVATE_KEY'],
-            algorithm = "RS256"
-        )
-    except:
-        return False
+
+    token = jwt.encode(
+        payload,
+        SECRET_FILE_DATA['PRIVATE_KEY'],
+        algorithm = "RS256"
+    )
+
 
     return token
 
