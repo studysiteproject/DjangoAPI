@@ -7,8 +7,10 @@ from rest_framework import serializers, status
 from .util.auth import *
 
 # 유저 확인을 위해 managemodel의 앱 기능 사용
-from ..manageuser.models import User
-from ..manageuser.serializers import UserSerializer
+import sys
+sys.path.append("..")
+from manageuser.models import User
+from manageuser.serializers import UserSerializer
 
 # Create your views here.
 class UserLogin(APIView):
