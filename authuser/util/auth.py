@@ -80,8 +80,10 @@ def verify_refresh_token(refresh_token):
 
 def register_refresh_token(refresh_token, index):
     
+    get_user_index = User.objects.get(id=index)
+
     Refresh.objects.create(
-            user_index=index,
+            user_index=get_user_index,
             refresh_token=refresh_token
             )
     
