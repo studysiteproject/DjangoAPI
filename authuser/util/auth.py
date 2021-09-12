@@ -30,7 +30,7 @@ def create_token(payload):
             algorithm = "RS256"
         )
     except:
-        return False
+        return payload
 
     return token
 
