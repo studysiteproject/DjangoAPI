@@ -11,8 +11,9 @@ vCZqa2uXPlGV2f1ECj2UEAbI/qU+dgMreveSgb+GRDGQngGPe+vNfLdm61UVXSpC
 8oLzbE/EO6dbUgCIIQIDAQAB
 -----END PUBLIC KEY-----"""
 
-SECRET_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), '/keyfiles/', 'secrets.json') # secrets.json 파일 위치를 명시
+print(os.path.dirname(os.path.realpath(__file__)))
 
+SECRET_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), '/keyfiles/', 'secrets.json') # secrets.json 파일 위치를 명시
 with open(SECRET_FILE) as f:
     SECRET_FILE_DATA = json.loads(f.read())
 
