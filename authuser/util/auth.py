@@ -3,6 +3,7 @@ import datetime
 import os, json
 import string, random
 from ..models import Refresh
+from manageuser.models import User
 
 PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDhNtVNetb9y/OtT7lAOtfz17+m
