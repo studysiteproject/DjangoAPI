@@ -3,6 +3,8 @@ import datetime
 import os, json
 import string, random
 from ..models import Refresh
+from ..serializers import RefreshSerializer
+
 from manageuser.models import User
 
 PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
@@ -74,7 +76,11 @@ def register_refresh_token(refresh_token, index):
     
     get_user_index = User.objects.get(id=index)
 
-    print(get_user_index, flush=True)
+    refresh_object = Refresh.objects.get(user_index=index)
+
+    # 삭제 후 재 생성
+    if refresh_object:
+        refresh_object.delete()
 
     Refresh.objects.create(
             user_index=get_user_index,
