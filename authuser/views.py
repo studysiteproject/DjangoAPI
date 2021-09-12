@@ -7,8 +7,6 @@ from rest_framework import serializers, status
 from .util.auth import *
 
 # 유저 확인을 위해 managemodel의 앱 기능 사용
-import sys
-sys.path.append("..")
 from manageuser.models import User
 from manageuser.serializers import UserSerializer
 
@@ -45,7 +43,7 @@ class UserLogin(APIView):
                     msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
                     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
-        user = self.get_object(userid=post_data['user_id'], user_pw=post_data['user_pw'])
+        user = self.get_object(user_id=post_data['user_id'], user_pw=post_data['user_pw'])
 
         if not user:
             msg = {'state': 'fail', 'detail': 'invalid account info'}
