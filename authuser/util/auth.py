@@ -23,7 +23,7 @@ def create_token(payload):
     
     payload['exp'] = datetime.datetime.utcnow() + datetime.timedelta(seconds=300)
 
-    print(payload, flush=True)
+    print(SECRET_FILE_DATA['PRIVATE_KEY'], flush=True)
 
     try:
         token = jwt.encode(
