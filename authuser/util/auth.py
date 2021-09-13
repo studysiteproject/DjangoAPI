@@ -39,7 +39,7 @@ class jwt_auth():
 
         return token
 
-    def verify_token(self, token, index):
+    def verify_token(self, token):
         try:
             jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')
         except Exception as e:
