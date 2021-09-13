@@ -187,9 +187,6 @@ class AuthPage(APIView):
         if res.status_code != status.HTTP_200_OK:
             return res
 
-        res.data = {
-            'status' : 'sucess',
-            'detail' : 'YOUR ACCOUNT ID is ' + manage_user.get_user_id(Index)
-            }
+        res.data['detail'] = 'YOUR ACCOUNT ID is ' + manage_user.get_user_id(user_index)
 
         return res 
