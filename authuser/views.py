@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from .models import Refresh
 # from .serializers import UserSerializer
 from rest_framework import serializers, status
-from .util.auth import *
+from .util.auth import jwt_auth
 
 # 유저 확인을 위해 managemodel의 앱 기능 사용
 from manageuser.models import User
@@ -14,28 +14,6 @@ from manageuser.serializers import UserSerializer
 class UserLogin(APIView):
 
     queryset = User.objects.all()
-
-    def get(self, request, *args, **kwargs):
-
-        payload = {'id':'dongyeon1201'}
-
-        # JWT 토큰 생성
-        access_token = create_token(payload)
-        refresh_token = create_refresh_token()
-        user_index = 1
-
-        # JWT refresh 토큰 DB 등록
-        register_refresh_token(refresh_token, user_index)
-        
-        # 반환 메세지 설정
-        msg = {'state': 'success'}
-        res = Response(msg, status=status.HTTP_200_OK)
-
-        # 쿠키 값 설정
-        res.set_cookie('access_token', access_token, httponly=True)
-        res.set_cookie('index', user_index, httponly=True)
-
-        return res
 
     def get_object(self, queryset=None, user_id=None, user_pw=None):
         if queryset is None:
@@ -76,20 +54,22 @@ class UserLogin(APIView):
             'user_id': serializer.data['user_id']
             }
 
+        auth = jwt_auth()
+
         # JWT 토큰 생성
-        access_token = create_token(payload)
-        refresh_token = create_refresh_token()
+        access_token = auth.create_token(payload)
+        refresh_token = auth.create_refresh_token()
         user_index = serializer.data['id']
 
         # JWT refresh 토큰 DB 등록
-        register_refresh_token(refresh_token, user_index)
+        auth.register_refresh_token(refresh_token, user_index)
         
         # 반환 메세지 설정
         msg = {'state': 'success'}
         res = Response(msg, status=status.HTTP_200_OK)
 
         # 쿠키 값 설정
-        res.set_cookie('access_token', access_token)
-        res.set_cookie('index', user_index)
+        res.set_cookie('access_token', access_token, httponly=True)
+        res.set_cookie('index', user_index, httponly=True)
 
         return res
