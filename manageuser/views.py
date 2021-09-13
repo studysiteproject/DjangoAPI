@@ -183,6 +183,7 @@ class AuthPage(APIView):
         res = auth.verify_user(access_token, user_index)
 
         # 토큰이 유효하지 않을 때
-        if res.status_code != status.HTTP_200_OK:
+        # if res.status_code != status.HTTP_200_OK:
 
-            return res       
+        return res
+        
