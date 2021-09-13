@@ -11,14 +11,22 @@ class manage():
     # get user_id using user_index
     def get_user_id(self, user_index):
 
-        queryset = User.objects.get(id=user_index)
-        serializer = UserSerializer(queryset)
-        
+        try:
+            queryset = User.objects.get(id=user_index)
+            serializer = UserSerializer(queryset)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return False
+            
         return serializer.data['user_id']
 
     # get user_index using user_id
     def get_user_index(self, user_id):
-        queryset = User.objects.get(user_id=user_id)
-        serializer = UserSerializer(queryset)
-        
+        try:
+            queryset = User.objects.get(user_id=user_id)
+            serializer = UserSerializer(queryset)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return False  
+
         return serializer.data['id']
