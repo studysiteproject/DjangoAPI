@@ -32,8 +32,8 @@ class UserLogin(APIView):
         res = Response(msg, status=status.HTTP_200_OK)
 
         # 쿠키 값 설정
-        res.set_cookie('access_token', access_token)
-        res.set_cookie('index', user_index)
+        res.set_cookie('access_token', access_token, httponly=True)
+        res.set_cookie('index', user_index, httponly=True)
 
         return res
 
