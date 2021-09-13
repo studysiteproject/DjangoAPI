@@ -26,6 +26,7 @@ class jwt_auth():
         with open(self.SECRET_FILE) as f:
             self.SECRET_FILE_DATA = json.loads(f.read())
 
+    # access_token 생성
     def create_token(self, payload):
         
         payload['exp'] = datetime.datetime.utcnow() + datetime.timedelta(seconds=self.TOKEN_EXP)
@@ -42,6 +43,7 @@ class jwt_auth():
 
         return token
 
+    # access token 인증
     def verify_token(self, token):
         try:
             jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')
@@ -51,6 +53,7 @@ class jwt_auth():
         else:
             return True
 
+    # refresh token 생성
     def create_refresh_token(self):
 
         payload = {}
@@ -68,6 +71,7 @@ class jwt_auth():
 
         return refresh_token
 
+    # refresh token 인증
     def verify_refresh_token(self, refresh_token):
         try:
             jwt.decode(refresh_token, self.PUBLIC_KEY, algorithms='RS256')
@@ -77,6 +81,7 @@ class jwt_auth():
         else:
             return True
 
+    # refresh token DB 등록
     def register_refresh_token(self, refresh_token, index):
         
         try:
@@ -101,6 +106,7 @@ class jwt_auth():
 
         return True
 
+    # refresh token DB 삭제 (로그아웃, 재 등록 시 기존 refresh token 삭제 등에 사용)
     def delete_refresh_token(self, index):
 
         # 만약 이미 해당 사용자의 refresh token이 존재한다면 삭제처리
@@ -113,6 +119,7 @@ class jwt_auth():
         
         return True
 
+    # refresh token 얻기(access token이 만료되었을 때 refresh token을 확인하기 위함)
     def get_refresh_token(self, index):
 
         # index를 이용하여 refresh token 확인
@@ -126,6 +133,9 @@ class jwt_auth():
         serializer = RefreshSerializer(refresh_object)
         return serializer.data['refresh_token']
 
+    # 사용자 인증(로그인이 필요한 페이지에 사용되는 함수로 해당 사용자가 정상적으로 로그인 했는지 확인)
+    # 인증 성공 시, status code 200와 메세지, access token & index 쿠키에 설정(httponly)
+    # 인증 실패 시, status code 401와 메세제, 쿠키에 등록된 access token & index 삭제
     def verify_user(self, access_token, user_index):
         
         res = Response()
@@ -179,6 +189,10 @@ class jwt_auth():
                 else:
                     print('invalid refresh token', flush=True)
 
+                    # 유효하지 않은 refresh token 삭제
+                    self.delete_refresh_token(user_index)
+                    
+                    # 반환 메세지 설정
                     msg = {'state': 'fail', 'detail': 'invalid token. relogin please'}
                     res = Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -201,6 +215,7 @@ class jwt_auth():
 
                 return res
 
+    # access token의 payload를 얻기
     def get_payload(self, token):
         try:
             payload = jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')

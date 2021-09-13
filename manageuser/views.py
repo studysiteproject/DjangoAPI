@@ -167,6 +167,7 @@ class UserDeleteView(APIView):
         msg = {'state': 'success'}
         return Response(msg, status=status.HTTP_200_OK)
 
+# 사용자가 인증된 사용자인지(정상적인 로그인을 진행한 상태인지) 확인하는 페이지
 class AuthPage(APIView):
 
     def get(self, request, *args, **kwargs):
@@ -187,6 +188,7 @@ class AuthPage(APIView):
         if res.status_code != status.HTTP_200_OK:
             return res
 
+        # 상세 메세지 설정
         res.data['detail'] = 'YOUR ACCOUNT ID is ' + manage_user.get_user_id(user_index)
 
         return res 
