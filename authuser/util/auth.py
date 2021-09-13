@@ -6,6 +6,7 @@ from authuser.models import Refresh
 from authuser.serializers import RefreshSerializer
 
 from manageuser.models import User
+from manageuser.util.manage import *
 
 class jwt_auth():
 
@@ -104,6 +105,61 @@ class jwt_auth():
         # return refresh_token
         serializer = RefreshSerializer(refresh_object)
         return serializer.data['refresh_token']
+
+    def verify_user(self, access_token, user_index):
+
+        # access_token 검사
+        if self.verify_token(access_token):
+            return access_token
+            # msg = {'state': 'success', 'detail': 'valid access_token'}
+            # return Response(msg, status=status.HTTP_200_OK)
+
+        # access_token이 유효하지 않을 때
+        else:
+            # 해당 유저의 refresh token을 얻어온다.
+            refresh_token = self.get_refresh_token(user_index)
+
+            # refresh token이 존재할 때
+            if refresh_token:
+
+                # refresh 토큰이 유효할 때
+                if self.verify_refresh_token(refresh_token):
+                    
+                    manage_user = manage()
+                    
+                    # 새로운 access_token 발급 후
+                    payload = {
+                        'user_id': manage_user.get_user_id(user_index)
+                    }
+
+                    new_access_token = self.create_token(payload)
+
+                    return new_access_token
+
+                    # # 쿠키에 재 설정하여 반환
+                    # # 반환 메세지 설정
+                    # msg = {'state': 'success'}
+                    # res = Response(msg, status=status.HTTP_200_OK)
+
+                    # # 쿠키 값 설정
+                    # res.set_cookie('access_token', new_access_token, httponly=True)
+                    # res.set_cookie('index', user_index, httponly=True)
+
+                    # return res
+
+                # refresh 토큰이 유효하지 않을 때 (재 로그인 요청)
+                else:
+                    print('invalid refresh token', flush=True)
+                    return False
+                    # msg = {'state': 'fail', 'detail': 'invalid token. relogin please'}
+                    # return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # refresh token이 없을 때 (재 로그인 요청)
+            else:
+                print('not find refresh token', flush=True)
+                return False
+                # msg = {'state': 'fail', 'detail': 'invalid token. relogin please'}
+                # return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
 def create_SECRET_KEY():
     # Get ascii Characters numbers and punctuation (minus quote characters as they could terminate string).
