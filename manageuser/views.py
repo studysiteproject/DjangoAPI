@@ -175,9 +175,6 @@ class AuthPage(APIView):
         access_token = request.COOKIES.get('access_token')
         user_index = request.COOKIES.get('index')
 
-        print("access_token : {}".format(access_token), flush=True)
-        print("user_index : {}".format(user_index), flush=True)
-
         # 인증에 사용될 클래스 호출
         auth = jwt_auth()
 
