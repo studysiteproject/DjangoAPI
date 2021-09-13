@@ -184,9 +184,11 @@ class AuthPage(APIView):
 
             # 반환 메세지 설정
             msg = {'state': 'success'}
-            res = Response(msg, status=status.HTTP_200_OK)
-            print(res.status_text, flush=True)
-            print(res.status_code, flush=True)
+            # res = Response(msg, status=status.HTTP_200_OK)
+            res = Response()
+            res.data = msg
+            res.status_code = status.HTTP_200_OK
+            
             # 쿠키 값 설정
             res.set_cookie('access_token', new_access_token, httponly=True)
             res.set_cookie('index', user_index, httponly=True)
