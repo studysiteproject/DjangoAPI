@@ -1,9 +1,27 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import status
+
 from .models import User
 from .serializers import UserSerializer
-from rest_framework import status
+from .util.manage import *
+
+# 인증에 사용되는 클래스 (authuser app)
+from authuser.util.auth import *
+
+# test
+class TEST(APIView):
+    
+    def get(self, request):
+
+        user_id = request.GET.get('user_id')
+        
+        manage_user = manage()
+        user_index = manage_user.get_user_index(user_id)
+
+        msg = {'user_index': user_index}
+        return Response(msg, status=status.HTTP_200_OK)
 
 # Create your views here.
 class UserListView(APIView):
@@ -159,3 +177,44 @@ class UserDeleteView(APIView):
 
         msg = {'state': 'success'}
         return Response(msg, status=status.HTTP_200_OK)
+
+class AuthPage(APIView):
+
+    def get(self, request, *args, **kwargs):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        # 인증에 사용될 클래스 호출
+        auth = jwt_auth()
+
+        # access_token 검사
+        if auth.verify_token(access_token):
+            msg = {'state': 'success', 'detail': 'valid access_token'}
+            return Response(msg, status=status.HTTP_200_OK)
+
+        # access_token이 유효하지 않을 때
+        else:
+            # 해당 유저의 refresh token을 얻어온다.
+            refresh_token = auth.get_refresh_token(user_index)
+
+            if refresh_token:
+
+                # refresh 토큰이 유효할 때
+                if auth.verify_refresh_token(refresh_token):
+                    pass
+                    
+                    # 새로운 access_token 발급 후
+
+                    # 쿠키에 재 설정하여 반환
+
+                # refresh 토큰이 유효하지 않을 때 (재 로그인 요청)
+                else:
+                    msg = {'state': 'fail', 'detail': 'invalid token. relogin please'}
+                    return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # refresh token이 없을 때 (재 로그인 요청)
+            else:
+                msg = {'state': 'fail', 'detail': 'invalid token. relogin please'}
+                return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
