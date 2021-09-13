@@ -15,13 +15,17 @@ class TEST(APIView):
     
     def get(self, request):
 
-        user_id = request.GET.get('user_id')
+        user_index = request.GET.get('user_index')
         
         manage_user = manage()
-        user_index = manage_user.get_user_index(user_id)
+        user_id = manage_user.get_user_id(user_index)
 
-        msg = {'user_index': user_index}
-        return Response(msg, status=status.HTTP_200_OK)
+        if user_index:
+            msg = {'user_id': user_id}
+            return Response(msg, status=status.HTTP_200_OK)
+        else:
+            msg = {'state': 'fail', 'detail': 'invalid user_index'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
 # Create your views here.
 class UserListView(APIView):
