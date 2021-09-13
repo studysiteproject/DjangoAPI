@@ -118,8 +118,6 @@ class jwt_auth():
         else:
             # 해당 유저의 refresh token을 얻어온다.
             refresh_token = self.get_refresh_token(user_index)
-            
-            print(refresh_token, flush=True)
 
             # refresh token이 존재할 때
             if refresh_token:

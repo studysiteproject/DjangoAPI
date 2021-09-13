@@ -190,6 +190,8 @@ class AuthPage(APIView):
             res.set_cookie('access_token', new_access_token, httponly=True)
             res.set_cookie('index', user_index, httponly=True)
 
+            return res
+
         else:
             msg = {'state': 'fail', 'detail': 'invalid token. relogin please'}
             return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
