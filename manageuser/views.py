@@ -175,15 +175,21 @@ class AuthPage(APIView):
         access_token = request.COOKIES.get('access_token')
         user_index = request.COOKIES.get('index')
 
-        # 인증에 사용될 클래스 호출
+        # 사용될 클래스 호출
         auth = jwt_auth()
+        manage_user = manage()
 
         # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
         # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
         res = auth.verify_user(access_token, user_index)
 
         # 토큰이 유효하지 않을 때
-        # if res.status_code != status.HTTP_200_OK:
+        if res.status_code != status.HTTP_200_OK:
+            return res
 
-        return res
-        
+        res.data = {
+            'status' : 'sucess',
+            'detail' : 'YOUR ACCOUNT ID is ' + manage_user.get_user_id(Index)
+            }
+
+        return res 

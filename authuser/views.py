@@ -73,3 +73,20 @@ class UserLogin(APIView):
         res.set_cookie('index', user_index, httponly=True)
 
         return res
+
+class TockenAuth(APIView):
+
+    def get(self, request, *args, **kwargs):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        # 인증에 사용될 클래스 호출
+        auth = jwt_auth()
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = auth.verify_user(access_token, user_index)
+
+        return res

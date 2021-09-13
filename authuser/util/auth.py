@@ -161,7 +161,7 @@ class jwt_auth():
                 # refresh 토큰이 유효하지 않을 때 (재 로그인 요청)
                 else:
                     print('invalid refresh token', flush=True)
-                    
+
                     msg = {'state': 'fail', 'detail': 'invalid token. relogin please'}
                     res = Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -183,6 +183,15 @@ class jwt_auth():
                 res.delete_cookie('index')
 
                 return res
+
+    def get_payload(self, token):
+        try:
+            payload = jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return False
+        else:
+            return payload
 
 def create_SECRET_KEY():
     # Get ascii Characters numbers and punctuation (minus quote characters as they could terminate string).
