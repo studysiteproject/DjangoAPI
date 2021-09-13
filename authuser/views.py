@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -65,7 +66,7 @@ class UserLogin(APIView):
         auth.register_refresh_token(refresh_token, user_index)
         
         # 반환 메세지 설정
-        msg = {'state': 'success'}
+        msg = {'state': 'success', 'detail': 'login succeeded'}
         res = Response(msg, status=status.HTTP_200_OK)
 
         # 쿠키 값 설정
@@ -90,3 +91,47 @@ class TockenAuth(APIView):
         res = auth.verify_user(access_token, user_index)
 
         return res
+
+class UserLogout(APIView):
+    
+    def get(self, request):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        # 사용될 클래스 호출
+        auth = jwt_auth()
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            res.data['detail'] = "invalid token. login first"
+            return res
+        
+        # refresh token 삭제 성공
+        if auth.delete_refresh_token(user_index):
+            
+            # 상세 메세지 설정
+            res.data['detail'] = "logout succeeded"
+            
+            # 쿠키 값 초기화
+            res.delete_cookie('access_token')
+            res.delete_cookie('index')
+
+            return res
+        
+        # refresh token 삭제 실패
+        else:
+            # 상세 메세지 설정
+            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.data['detail'] = "logout failed"
+
+            # 쿠키 값 초기화
+            res.delete_cookie('access_token')
+            res.delete_cookie('index')
+
+            return res

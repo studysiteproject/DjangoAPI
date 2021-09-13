@@ -79,20 +79,37 @@ class jwt_auth():
 
     def register_refresh_token(self, refresh_token, index):
         
-        get_user_index = User.objects.get(id=index)
+        try:
+            get_user_index = User.objects.get(id=index)
+
+            # 만약 이미 해당 사용자의 refresh token이 존재한다면 삭제처리
+            self.delete_refresh_token(index)
+            # try:
+            #     refresh_object = Refresh.objects.get(user_index=index)
+            #     refresh_object.delete()
+            # except:
+            #     pass
+
+            # refresh token 등록
+            Refresh.objects.create(
+                    user_index=get_user_index,
+                    refresh_token=refresh_token
+                )
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return False
+
+        return True
+
+    def delete_refresh_token(self, index):
 
         # 만약 이미 해당 사용자의 refresh token이 존재한다면 삭제처리
         try:
             refresh_object = Refresh.objects.get(user_index=index)
             refresh_object.delete()
-        except:
-            pass
-        
-        # refresh token 등록
-        Refresh.objects.create(
-                user_index=get_user_index,
-                refresh_token=refresh_token
-            )
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return False
         
         return True
 
