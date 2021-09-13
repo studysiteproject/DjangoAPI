@@ -178,30 +178,11 @@ class AuthPage(APIView):
         # 인증에 사용될 클래스 호출
         auth = jwt_auth()
 
-        new_access_token = auth.verify_user(access_token, user_index)
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = auth.verify_user(access_token, user_index)
 
-        if new_access_token:
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
 
-            # 반환 메세지 설정
-            msg = {'state': 'success'}
-            # res = Response(msg, status=status.HTTP_200_OK)
-            res = Response()
-            res.data = msg
-            res.status_code = status.HTTP_200_OK
-            
-            # 쿠키 값 설정
-            res.set_cookie('access_token', new_access_token, httponly=True)
-            res.set_cookie('index', user_index, httponly=True)
-
-            return res
-
-        else:
-            # 반환 메세지 설정
-            msg = {'state': 'fail', 'detail': 'invalid token. relogin please'}
-            res = Response(msg, status=status.HTTP_401_UNAUTHORIZED)
-
-            # 쿠키 값 초기화
-            res.delete_cookie('access_token')
-            res.delete_cookie('index')
-
-            return res
+            return res       
