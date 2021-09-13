@@ -2,8 +2,8 @@ import jwt
 import datetime
 import os, json
 import string, random
-from ..models import Refresh
-from ..serializers import RefreshSerializer
+from authuser.models import Refresh
+from authuser.serializers import RefreshSerializer
 
 from manageuser.models import User
 
@@ -33,7 +33,7 @@ class jwt_auth():
                 algorithm = "RS256"
             )
         except Exception as e:
-            print("ERROR NAME : {}".format(e))
+            print("ERROR NAME : {}".format(e), flush=True)
             return False
 
         return token
@@ -42,7 +42,7 @@ class jwt_auth():
         try:
             jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')
         except Exception as e:
-            print("ERROR NAME : {}".format(e))
+            print("ERROR NAME : {}".format(e), flush=True)
             return False
         else:
             return True
@@ -59,7 +59,7 @@ class jwt_auth():
                 algorithm = "RS256"
             )
         except Exception as e:
-            print("ERROR NAME : {}".format(e))
+            print("ERROR NAME : {}".format(e), flush=True)
             return False
 
         return refresh_token
@@ -68,7 +68,7 @@ class jwt_auth():
         try:
             jwt.decode(refresh_token, self.PUBLIC_KEY, algorithms='RS256')
         except Exception as e:
-            print("ERROR NAME : {}".format(e))
+            print("ERROR NAME : {}".format(e), flush=True)
             return False
         else:
             return True
@@ -93,14 +93,17 @@ class jwt_auth():
         return True
 
     def get_refresh_token(self, index):
-        # index를 이용하여 refresh token 확인
-        # return refresh_token
-        pass
 
-    def del_refresh_token(self, index):
-        # index를 이용하여 refresh token 삭제
-        # return True
-        pass
+        # index를 이용하여 refresh token 확인
+        try:
+            refresh_object = Refresh.objects.get(user_index=index)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return False
+
+        # return refresh_token
+        serializer = RefreshSerializer(refresh_object)
+        return serializer.data['refresh_token']
 
 def create_SECRET_KEY():
     # Get ascii Characters numbers and punctuation (minus quote characters as they could terminate string).
