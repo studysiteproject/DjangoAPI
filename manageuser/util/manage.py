@@ -34,15 +34,15 @@ class manage():
         return serializer.data['id']
     
     # post data verify
-    def is_valid_post_value(post_data):
+    def is_valid_post_value(**kwargs):
 
-        for key in post_data:
+        for key, value in kwargs.items():
             
             # 만약 NULL 값이 허용되지 않는 필드일 때
             if User._meta.get_field(key).empty_strings_allowed == False:
 
                 # 입력된 데이터가 존재하지 않을 때
-                if not post_data[key]:
+                if not value:
                     msg = {'state': 'fail', 'detail': 'No Data For {}'.format(key)}
                     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
             
@@ -50,7 +50,7 @@ class manage():
             if User._meta.get_field(key).max_length != None:
 
                 # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
-                if len(post_data[key]) > User._meta.get_field(key).max_length:
+                if len(value) > User._meta.get_field(key).max_length:
                     msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
                     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
