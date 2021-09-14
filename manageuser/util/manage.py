@@ -34,7 +34,7 @@ class manage():
         return serializer.data['id']
     
     # post data verify
-    def is_valid_post_value(**kwargs):
+    def is_valid_post_value(self, **kwargs):
 
         for key, value in kwargs.items():
             
