@@ -81,4 +81,10 @@ class manage():
         hash_password = serializer.data['user_pw']
 
         # 패스워드 확인
-        return bcrypt.checkpw(password.encode('utf-8'), hash_password.encode('utf-8'))
+        try:
+            bcrypt.checkpw(password.encode('utf-8'), hash_password.encode('utf-8'))
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return False
+        
+        return True
