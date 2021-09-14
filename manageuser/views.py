@@ -74,7 +74,7 @@ class UserCreateView(APIView):
 
         User.objects.create(
             user_id=post_data['user_id'], 
-            user_pw=post_data['user_pw'], 
+            user_pw=self.manage_user.create_hash_password(post_data['user_pw']), 
             user_name=post_data['user_name'],
             email=post_data['email'], 
             user_identity=post_data['user_identity'], 
@@ -87,23 +87,35 @@ class UserCreateView(APIView):
 
 class UserUpdateView(APIView):
 
-    queryset = User.objects.all()
-    pk_url_kwargs = 'user_id'
+    # queryset = User.objects.all()
+    # pk_url_kwargs = 'user_id'
 
     # 사용될 클래스 호출
     manage_user = manage()
 
-    def get_object(self, queryset=None):
-        if queryset is None:
-            queryset = self.queryset
+    # def get_object(self, queryset=None):
+    #     if queryset is None:
+    #         queryset = self.queryset
 
-        pk = self.kwargs.get(self.pk_url_kwargs)
+    #     pk = self.kwargs.get(self.pk_url_kwargs)
         
-        return queryset.filter(pk=pk).first()
+    #     return queryset.filter(pk=pk).first()
 
     def post(self, request, *args, **kwargs):
 
-        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'warning_cnt', 'account_state')}
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'user_id', 'user_pw', 'warning_cnt', 'account_state')}
 
         # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
         verify_post_data_result = self.manage_user.is_valid_post_value(post_data)
@@ -111,11 +123,18 @@ class UserUpdateView(APIView):
         if verify_post_data_result.status_code != 200:
             return verify_post_data_result
         
-        user = self.get_object()
-
-        if not user:
+        try:
+            user = User.objects.get(id=user_index)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e))
             msg = {'state': 'fail', 'detail': 'invalid user_id'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # user = self.get_object()
+
+        # if not user:
+        #     msg = {'state': 'fail', 'detail': 'invalid user_id'}
+        #     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         for key, value in post_data.items():
             setattr(user, key, value)

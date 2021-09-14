@@ -10,7 +10,7 @@ from .util.auth import jwt_auth
 
 # 유저 확인을 위해 managemodel의 앱 기능 사용
 from manageuser.models import User
-from manageuser.serializers import UserSerializer
+from manageuser.serializers import UserPasswordSerializer, UserSerializer
 
 # Create your views here.
 class UserLogin(APIView):
@@ -28,9 +28,19 @@ class UserLogin(APIView):
         if verify_post_data_result.status_code != 200:
             return verify_post_data_result
 
+        # 입력한 계정 ID로 유저 Object 얻어오기
         try:
-            user = User.objects.get(user_id=post_data['user_id'], user_pw=post_data['user_pw'])
+            user = User.objects.get(user_id=post_data['user_id'])
         except:
+            msg = {'state': 'fail', 'detail': 'invalid account info'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 패스워드 검증
+        # 입력한 패스워드(평문)와 입력한 계정 ID를 넣는다.
+        verify_password_result = self.manage_user.verify_password(post_data['user_pw'], post_data['user_id'])
+
+        # 잘못된 패스워드일 때
+        if verify_password_result == False:
             msg = {'state': 'fail', 'detail': 'invalid account info'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
