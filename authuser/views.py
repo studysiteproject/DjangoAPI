@@ -1,10 +1,10 @@
+from manageuser.util.manage import manage
 import re
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Refresh
-# from .serializers import UserSerializer
-from rest_framework import serializers, status
+from rest_framework import status
 from .util.auth import jwt_auth
 
 # 유저 확인을 위해 managemodel의 앱 기능 사용
@@ -24,29 +24,25 @@ class UserLogin(APIView):
 
     def post(self, request, *args, **kwargs):
         
+        auth = jwt_auth()
+        manage_user = manage()
+
         post_data = {key: request.POST.get(key) for key in ('user_id', 'user_pw')}
+        verify_post_data_result = manage_user.is_valid_post_value(post_data)
+        
+        # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
+        if verify_post_data_result.status_code != 200:
+            return verify_post_data_result
 
-        for key in post_data:
-            
-            # 만약 NULL 값이 허용되지 않는 필드일 때
-            if User._meta.get_field(key).empty_strings_allowed == False:
+        # user = self.get_object(user_id=post_data['user_id'], user_pw=post_data['user_pw'])
 
-                # 입력된 데이터가 존재하지 않을 때
-                if not post_data[key]:
-                    msg = {'state': 'fail', 'detail': 'No Data For {}'.format(key)}
-                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-            
-            # 만약 제한 길이가 존재하는 필드일 때
-            if User._meta.get_field(key).max_length != None:
+        # if not user:
+        #     msg = {'state': 'fail', 'detail': 'invalid account info'}
+        #     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
-                # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
-                if len(post_data[key]) > User._meta.get_field(key).max_length:
-                    msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
-                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-
-        user = self.get_object(user_id=post_data['user_id'], user_pw=post_data['user_pw'])
-
-        if not user:
+        try:
+            user = User.objects.get(user_id=post_data['user_id'], user_pw=post_data['user_pw'])
+        except:
             msg = {'state': 'fail', 'detail': 'invalid account info'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
@@ -54,8 +50,6 @@ class UserLogin(APIView):
         payload = {
             'user_id': serializer.data['user_id']
             }
-
-        auth = jwt_auth()
 
         # JWT 토큰 생성
         access_token = auth.create_token(payload)
