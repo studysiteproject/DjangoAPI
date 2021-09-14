@@ -91,6 +91,7 @@ class UserUpdateView(APIView):
     # pk_url_kwargs = 'user_id'
 
     # 사용될 클래스 호출
+    auth = jwt_auth()
     manage_user = manage()
 
     # def get_object(self, queryset=None):
