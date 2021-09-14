@@ -35,23 +35,46 @@ class UserListView(APIView):
 
 class UserDetailView(APIView):
 
-    queryset = User.objects.all()
-    pk_url_kwargs = 'user_id'
+    # queryset = User.objects.all()
+    # pk_url_kwargs = 'user_id'
 
-    def get_object(self, queryset=None):
-        if queryset is None:
-            queryset = self.queryset
+    # 사용될 클래스 호출
+    auth = jwt_auth()
+    manage_user = manage()
 
-        pk = self.kwargs.get(self.pk_url_kwargs)
+    # def get_object(self, queryset=None):
+    #     if queryset is None:
+    #         queryset = self.queryset
+
+    #     pk = self.kwargs.get(self.pk_url_kwargs)
         
-        return queryset.filter(pk=pk).first()
+    #     return queryset.filter(pk=pk).first()
 
     def get(self, request, *args, **kwargs):
 
-        user = self.get_object()
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
 
-        if not user:
-            msg = {'state': 'fail', 'detail': 'invalid user_id'}
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+        
+        # user = self.get_object()
+
+        # if not user:
+        #     msg = {'state': 'fail', 'detail': 'invalid user_id'}
+        #     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_index)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e))
+            msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = UserSerializer(user)
@@ -128,7 +151,7 @@ class UserUpdateView(APIView):
             user = User.objects.get(id=user_index)
         except Exception as e:
             print("ERROR NAME : {}".format(e))
-            msg = {'state': 'fail', 'detail': 'invalid user_id'}
+            msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # user = self.get_object()
