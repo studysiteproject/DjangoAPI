@@ -59,26 +59,18 @@ class UserDetailView(APIView):
 
 class UserCreateView(APIView): 
 
+    # 사용될 클래스 호출
+    manage_user = manage()
+
     def post(self, request, *args, **kwargs):
+        
         post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'warning_cnt', 'account_state')}
 
-        for key in post_data:
-            
-            # 만약 NULL 값이 허용되지 않는 필드일 때
-            if User._meta.get_field(key).empty_strings_allowed == False:
-
-                # 입력된 데이터가 존재하지 않을 때
-                if not post_data[key]:
-                    msg = {'state': 'fail', 'detail': 'No Data For {}'.format(key)}
-                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-            
-            # 만약 제한 길이가 존재하는 필드일 때
-            if User._meta.get_field(key).max_length != None:
-
-                # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
-                if len(post_data[key]) > User._meta.get_field(key).max_length:
-                    msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
-                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
+        verify_post_data_result = self.manage_user.is_valid_post_value(post_data)
+        
+        if verify_post_data_result.status_code != 200:
+            return verify_post_data_result
 
         User.objects.create(
             user_id=post_data['user_id'], 
@@ -98,6 +90,9 @@ class UserUpdateView(APIView):
     queryset = User.objects.all()
     pk_url_kwargs = 'user_id'
 
+    # 사용될 클래스 호출
+    manage_user = manage()
+
     def get_object(self, queryset=None):
         if queryset is None:
             queryset = self.queryset
@@ -107,25 +102,14 @@ class UserUpdateView(APIView):
         return queryset.filter(pk=pk).first()
 
     def post(self, request, *args, **kwargs):
+
         post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'warning_cnt', 'account_state')}
 
-        for key in post_data:
-            
-            # 만약 NULL 값이 허용되지 않는 필드일 때
-            if User._meta.get_field(key).empty_strings_allowed == False:
-
-                # 입력된 데이터가 존재하지 않을 때
-                if not post_data[key]:
-                    msg = {'state': 'fail', 'detail': 'No Data For {}'.format(key)}
-                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-            
-            # 만약 제한 길이가 존재하는 필드일 때
-            if User._meta.get_field(key).max_length != None:
-
-                # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
-                if len(post_data[key]) > User._meta.get_field(key).max_length:
-                    msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
-                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
+        verify_post_data_result = self.manage_user.is_valid_post_value(post_data)
+        
+        if verify_post_data_result.status_code != 200:
+            return verify_post_data_result
         
         user = self.get_object()
 
@@ -170,25 +154,26 @@ class UserDeleteView(APIView):
 # 사용자가 인증된 사용자인지(정상적인 로그인을 진행한 상태인지) 확인하는 페이지
 class AuthPage(APIView):
 
+    # 사용될 클래스 호출
+    auth = jwt_auth()
+    manage_user = manage()
+
+
     def get(self, request, *args, **kwargs):
 
         # access_token, user_index를 얻어온다.
         access_token = request.COOKIES.get('access_token')
         user_index = request.COOKIES.get('index')
 
-        # 사용될 클래스 호출
-        auth = jwt_auth()
-        manage_user = manage()
-
         # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
         # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
-        res = auth.verify_user(access_token, user_index)
+        res = self.auth.verify_user(access_token, user_index)
 
         # 토큰이 유효하지 않을 때
         if res.status_code != status.HTTP_200_OK:
             return res
 
         # 상세 메세지 설정
-        res.data['detail'] = 'YOUR ACCOUNT ID is ' + manage_user.get_user_id(user_index)
+        res.data['detail'] = 'YOUR ACCOUNT ID is ' + self.manage_user.get_user_id(user_index)
 
         return res 
