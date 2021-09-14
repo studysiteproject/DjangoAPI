@@ -15,32 +15,18 @@ from manageuser.serializers import UserSerializer
 # Create your views here.
 class UserLogin(APIView):
 
-    queryset = User.objects.all()
-
-    def get_object(self, queryset=None, user_id=None, user_pw=None):
-        if queryset is None:
-            queryset = self.queryset
-        
-        return queryset.filter(user_id=user_id).filter(user_pw=user_pw).first()
+    auth = jwt_auth()
+    manage_user = manage()
 
     def post(self, request, *args, **kwargs):
-        
-        auth = jwt_auth()
-        manage_user = manage()
 
         post_data = {key: request.POST.get(key) for key in ('user_id', 'user_pw')}
-        print(type(post_data), flush=True)
-        verify_post_data_result = manage_user.is_valid_post_value(post_data)
         
         # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
+        verify_post_data_result = self.manage_user.is_valid_post_value(post_data)
+
         if verify_post_data_result.status_code != 200:
             return verify_post_data_result
-
-        # user = self.get_object(user_id=post_data['user_id'], user_pw=post_data['user_pw'])
-
-        # if not user:
-        #     msg = {'state': 'fail', 'detail': 'invalid account info'}
-        #     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(user_id=post_data['user_id'], user_pw=post_data['user_pw'])
@@ -54,12 +40,12 @@ class UserLogin(APIView):
             }
 
         # JWT 토큰 생성
-        access_token = auth.create_token(payload)
-        refresh_token = auth.create_refresh_token()
+        access_token = self.auth.create_token(payload)
+        refresh_token = self.auth.create_refresh_token()
         user_index = serializer.data['id']
 
         # JWT refresh 토큰 DB 등록
-        auth.register_refresh_token(refresh_token, user_index)
+        self.auth.register_refresh_token(refresh_token, user_index)
         
         # 반환 메세지 설정
         msg = {'state': 'success', 'detail': 'login succeeded'}
@@ -73,18 +59,18 @@ class UserLogin(APIView):
 
 class UserLogout(APIView):
     
+    # 사용될 클래스 호출
+    auth = jwt_auth()
+
     def get(self, request):
 
         # access_token, user_index를 얻어온다.
         access_token = request.COOKIES.get('access_token')
         user_index = request.COOKIES.get('index')
 
-        # 사용될 클래스 호출
-        auth = jwt_auth()
-
         # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
         # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
-        res = auth.verify_user(access_token, user_index)
+        res = self.auth.verify_user(access_token, user_index)
 
         # 토큰이 유효하지 않을 때
         if res.status_code != status.HTTP_200_OK:
@@ -92,7 +78,7 @@ class UserLogout(APIView):
             return res
         
         # refresh token 삭제 성공
-        if auth.delete_refresh_token(user_index):
+        if self.auth.delete_refresh_token(user_index):
             
             # 상세 메세지 설정
             res.data['detail'] = "logout succeeded"
@@ -117,17 +103,17 @@ class UserLogout(APIView):
 
 class TockenAuth(APIView):
 
+    # 인증에 사용될 클래스 호출
+    auth = jwt_auth()
+
     def get(self, request, *args, **kwargs):
 
         # access_token, user_index를 얻어온다.
         access_token = request.COOKIES.get('access_token')
         user_index = request.COOKIES.get('index')
 
-        # 인증에 사용될 클래스 호출
-        auth = jwt_auth()
-
         # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
         # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
-        res = auth.verify_user(access_token, user_index)
+        res = self.auth.verify_user(access_token, user_index)
 
         return res
