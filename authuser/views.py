@@ -29,7 +29,7 @@ class UserLogin(APIView):
         manage_user = manage()
 
         post_data = {key: request.POST.get(key) for key in ('user_id', 'user_pw')}
-        print(post_data, flush=True)
+        print(type(post_data), flush=True)
         verify_post_data_result = manage_user.is_valid_post_value(json.dumps(post_data))
         
         # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
