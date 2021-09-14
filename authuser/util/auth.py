@@ -89,11 +89,6 @@ class jwt_auth():
 
             # 만약 이미 해당 사용자의 refresh token이 존재한다면 삭제처리
             self.delete_refresh_token(index)
-            # try:
-            #     refresh_object = Refresh.objects.get(user_index=index)
-            #     refresh_object.delete()
-            # except:
-            #     pass
 
             # refresh token 등록
             Refresh.objects.create(
