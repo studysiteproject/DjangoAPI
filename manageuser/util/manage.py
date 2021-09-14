@@ -1,9 +1,12 @@
 from django.db.models.query import QuerySet
 from manageuser.models import User
 from manageuser.serializers import UserSerializer
+from manageuser.serializers import UserPasswordSerializer
 
 from rest_framework.response import Response
 from rest_framework import status
+
+import bcrypt
 
 class manage():
 
@@ -56,3 +59,26 @@ class manage():
         
         msg = {'state': 'success', 'detail': 'valid post data'}
         return Response(msg, status=status.HTTP_200_OK)
+
+    def create_hash_password(self, password):
+        hash_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        return hash_password.decode('utf-8')
+
+    def verify_password(self, password, user_id):
+
+        # hash_password -> user_index를 사용하여 DB에서 값 얻기
+
+        user_index = self.get_user_index(user_id)
+
+        try:
+            user_object = User.objects.get(id=user_index)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return False
+
+        # return hash_password
+        serializer = UserPasswordSerializer(user_object)
+        hash_password = serializer.data['user_pw']
+
+        # 패스워드 확인
+        return bcrypt.checkpw(password.encode('utf-8'), hash_password.encode('utf-8'))
