@@ -1,5 +1,6 @@
 from manageuser.util.manage import manage
 import re
+import json
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -29,7 +30,7 @@ class UserLogin(APIView):
 
         post_data = {key: request.POST.get(key) for key in ('user_id', 'user_pw')}
         print(post_data, flush=True)
-        verify_post_data_result = manage_user.is_valid_post_value(post_data)
+        verify_post_data_result = manage_user.is_valid_post_value(json.dump(post_data))
         
         # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
         if verify_post_data_result.status_code != 200:
