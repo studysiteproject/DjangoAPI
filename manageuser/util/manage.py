@@ -80,6 +80,9 @@ class manage():
         serializer = UserPasswordSerializer(user_object)
         hash_password = serializer.data['user_pw']
 
+        print("input password : {}".format(password), flush=True)
+        print("input password : {}".format(hash_password), flush=True)
+
         # 패스워드 확인
         try:
             bcrypt.checkpw(password.encode('utf-8'), hash_password.encode('utf-8'))

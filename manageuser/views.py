@@ -140,19 +140,8 @@ class UserUpdateView(APIView):
 # 현재 로그인한 사용자를 탈퇴 시키는 기능
 class UserDeleteView(APIView):
 
-    # queryset = User.objects.all()
-    # pk_url_kwargs = 'user_id'
-
     # 사용될 클래스 호출
     auth = jwt_auth()
-
-    # def get_object(self, queryset=None):
-    #     if queryset is None:
-    #         queryset = self.queryset
-
-    #     pk = self.kwargs.get(self.pk_url_kwargs)
-        
-    #     return queryset.filter(pk=pk).first()
 
     def get(self, request, *args, **kwargs):
         
@@ -174,12 +163,6 @@ class UserDeleteView(APIView):
             print("ERROR NAME : {}".format(e))
             msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-
-        # user = self.get_object()
-
-        # if not user:
-        #     msg = {'state': 'fail', 'detail': 'invalid user_id'}
-        #     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 유저 삭제 동작
         try:
