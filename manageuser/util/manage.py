@@ -85,9 +85,9 @@ class manage():
 
         # 패스워드 확인
         try:
-            bcrypt.checkpw(password.encode('utf-8'), hash_password.encode('utf-8'))
+            result = bcrypt.checkpw(password.encode('utf-8'), hash_password.encode('utf-8'))
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             return False
         
-        return True
+        return result
