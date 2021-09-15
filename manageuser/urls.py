@@ -6,6 +6,6 @@ urlpatterns = [
     path('view', UserDetailView.as_view()),
     path('create', UserCreateView.as_view()),
     path('update', UserUpdateView.as_view()),
-    path('delete/<int:user_id>', UserDeleteView.as_view()),
+    path('delete', UserDeleteView.as_view()),
     path('authpage', AuthPage.as_view())
 ]
