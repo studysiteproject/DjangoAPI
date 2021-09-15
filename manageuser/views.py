@@ -33,22 +33,12 @@ class UserListView(APIView):
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+# 현재 로그인한 사용자의 상세 프로필을 확인하는 기능
 class UserDetailView(APIView):
-
-    # queryset = User.objects.all()
-    # pk_url_kwargs = 'user_id'
 
     # 사용될 클래스 호출
     auth = jwt_auth()
     manage_user = manage()
-
-    # def get_object(self, queryset=None):
-    #     if queryset is None:
-    #         queryset = self.queryset
-
-    #     pk = self.kwargs.get(self.pk_url_kwargs)
-        
-    #     return queryset.filter(pk=pk).first()
 
     def get(self, request, *args, **kwargs):
 
@@ -63,12 +53,6 @@ class UserDetailView(APIView):
         # 토큰이 유효하지 않을 때
         if res.status_code != status.HTTP_200_OK:
             return res
-        
-        # user = self.get_object()
-
-        # if not user:
-        #     msg = {'state': 'fail', 'detail': 'invalid user_id'}
-        #     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.get(id=user_index)
@@ -80,6 +64,7 @@ class UserDetailView(APIView):
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+# 새로운 유저를 생성하는 기능(회원 가입)
 class UserCreateView(APIView): 
 
     # 사용될 클래스 호출
@@ -105,25 +90,15 @@ class UserCreateView(APIView):
             blog_url=post_data['blog_url']
             )
 
-        msg = {'state': 'success'}
+        msg = {'state': 'success', 'detail': 'user create successed'}
         return Response(msg, status=status.HTTP_201_CREATED)
 
+# 현재 로그인한 사용자의 상세 프로필을 업데이트하는 기능
 class UserUpdateView(APIView):
-
-    # queryset = User.objects.all()
-    # pk_url_kwargs = 'user_id'
 
     # 사용될 클래스 호출
     auth = jwt_auth()
     manage_user = manage()
-
-    # def get_object(self, queryset=None):
-    #     if queryset is None:
-    #         queryset = self.queryset
-
-    #     pk = self.kwargs.get(self.pk_url_kwargs)
-        
-    #     return queryset.filter(pk=pk).first()
 
     def post(self, request, *args, **kwargs):
 
@@ -153,46 +128,69 @@ class UserUpdateView(APIView):
             print("ERROR NAME : {}".format(e))
             msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-
-        # user = self.get_object()
-
-        # if not user:
-        #     msg = {'state': 'fail', 'detail': 'invalid user_id'}
-        #     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         for key, value in post_data.items():
             setattr(user, key, value)
         
         user.save()
 
-        msg = {'state': 'success'}
+        msg = {'state': 'success', 'detail': 'update successed'}
         return Response(msg, status=status.HTTP_201_CREATED)
 
+# 현재 로그인한 사용자를 탈퇴 시키는 기능
 class UserDeleteView(APIView):
 
-    queryset = User.objects.all()
-    pk_url_kwargs = 'user_id'
+    # queryset = User.objects.all()
+    # pk_url_kwargs = 'user_id'
 
-    def get_object(self, queryset=None):
-        if queryset is None:
-            queryset = self.queryset
+    # 사용될 클래스 호출
+    auth = jwt_auth()
 
-        pk = self.kwargs.get(self.pk_url_kwargs)
+    # def get_object(self, queryset=None):
+    #     if queryset is None:
+    #         queryset = self.queryset
+
+    #     pk = self.kwargs.get(self.pk_url_kwargs)
         
-        return queryset.filter(pk=pk).first()
+    #     return queryset.filter(pk=pk).first()
 
     def get(self, request, *args, **kwargs):
+        
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
 
-        user = self.get_object()
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
 
-        if not user:
-            msg = {'state': 'fail', 'detail': 'invalid user_id'}
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        try:
+            user = User.objects.get(id=user_index)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e))
+            msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
-        user.delete()
+        # user = self.get_object()
 
-        msg = {'state': 'success'}
-        return Response(msg, status=status.HTTP_200_OK)
+        # if not user:
+        #     msg = {'state': 'fail', 'detail': 'invalid user_id'}
+        #     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 유저 삭제 동작
+        try:
+            user.delete()
+
+            msg = {'state': 'success'}
+            return Response(msg, status=status.HTTP_200_OK)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e))
+            msg = {'state': 'fail', 'detail': 'account delete failed'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
 # 사용자가 인증된 사용자인지(정상적인 로그인을 진행한 상태인지) 확인하는 페이지
 class AuthPage(APIView):
