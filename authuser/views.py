@@ -111,6 +111,21 @@ class UserLogout(APIView):
 
             return res
 
+class IdDuplicatecheck(APIView):
+
+    def get(self, request):
+        
+        input_id = request.GET.data('user_id')
+
+        try:
+            user = User.objects.get(user_id=input_id)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e))
+            # msg = {'state': 'success', 'detail': 'can\'t use this id'}
+            return False
+        
+        return True
+
 class TockenAuth(APIView):
 
     # 인증에 사용될 클래스 호출

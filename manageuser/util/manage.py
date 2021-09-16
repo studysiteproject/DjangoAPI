@@ -66,8 +66,6 @@ class manage():
 
     def verify_password(self, password, user_id):
 
-        # hash_password -> user_index를 사용하여 DB에서 값 얻기
-
         user_index = self.get_user_index(user_id)
 
         try:
