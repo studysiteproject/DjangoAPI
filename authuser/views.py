@@ -121,10 +121,10 @@ class IdDuplicatecheck(APIView):
             user = User.objects.get(user_id=input_id)
         except Exception as e:
             print("ERROR NAME : {}".format(e))
-            msg = {'state': 'fail', 'detail': 'can\'t use this id'}
-            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            msg = {'available': True, 'detail': 'can use this id'}
+            return Response(msg, status=status.HTTP_200_OK)
         
-        msg = {'state': 'success', 'detail': 'can use this id'}
+        msg = {'available': False, 'detail': 'ID is already in use'}
         return Response(msg, status=status.HTTP_200_OK)
 
 class TockenAuth(APIView):
