@@ -115,7 +115,7 @@ class IdDuplicatecheck(APIView):
 
     def get(self, request):
         
-        input_id = request.GET.data('user_id')
+        input_id = request.GET.get('user_id')
 
         try:
             user = User.objects.get(user_id=input_id)
