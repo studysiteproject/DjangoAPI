@@ -5,7 +5,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Refresh
-from rest_framework import status
+from rest_framework import HTTP_HEADER_ENCODING, status
 from .util.auth import jwt_auth
 
 # 유저 확인을 위해 managemodel의 앱 기능 사용
@@ -121,10 +121,11 @@ class IdDuplicatecheck(APIView):
             user = User.objects.get(user_id=input_id)
         except Exception as e:
             print("ERROR NAME : {}".format(e))
-            # msg = {'state': 'success', 'detail': 'can\'t use this id'}
-            return False
+            msg = {'state': 'fail', 'detail': 'can\'t use this id'}
+            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
         
-        return True
+        msg = {'state': 'success', 'detail': 'can use this id'}
+        return Response(msg, status=status.HTTP_200_OK)
 
 class TockenAuth(APIView):
 
