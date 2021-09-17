@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Refresh
 from rest_framework import HTTP_HEADER_ENCODING, status
-from .util.auth import jwt_auth
+from .util.auth import jwt_auth, input_data_verify
 
 # 유저 확인을 위해 managemodel의 앱 기능 사용
 from manageuser.models import User
@@ -113,19 +113,23 @@ class UserLogout(APIView):
 
 class IdDuplicatecheck(APIView):
 
+    input_verify = input_data_verify()
+
     def get(self, request):
         
         input_id = request.GET.get('user_id')
 
-        try:
-            user = User.objects.get(user_id=input_id)
-        except Exception as e:
-            print("ERROR NAME : {}".format(e))
+        result = self.input_verify.IdDuplicatecheck(input_id)
+        
+        # 현재 사용하지 않는 ID일 때 (가입 시 사용 가능한 ID)
+        if result:
             msg = {'available': True, 'detail': 'can use this id'}
             return Response(msg, status=status.HTTP_200_OK)
-        
-        msg = {'available': False, 'detail': 'ID is already in use'}
-        return Response(msg, status=status.HTTP_200_OK)
+
+        # 현재 사용하는 ID 일 때 (가입 시 사용 가능한 ID)
+        else:
+            msg = {'available': False, 'detail': 'ID is already in use'}
+            return Response(msg, status=status.HTTP_200_OK)
 
 class TockenAuth(APIView):
 

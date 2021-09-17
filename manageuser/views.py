@@ -86,8 +86,6 @@ class UserCreateView(APIView):
             user_name=post_data['user_name'],
             email=post_data['email'], 
             user_identity=post_data['user_identity'], 
-            github_url=post_data['github_url'], 
-            blog_url=post_data['blog_url']
             )
 
         msg = {'state': 'success', 'detail': 'user create successed'}
