@@ -92,7 +92,7 @@ DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.mysql',
         'ENGINE': 'mysql.connector.django',
-        'NAME': 'member',
+        'NAME': 'sitedb',
         'USER': 'root',
         'PASSWORD': 'password1!',
         'HOST': '52.78.216.119',

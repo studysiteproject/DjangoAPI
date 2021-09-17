@@ -220,6 +220,51 @@ class jwt_auth():
         else:
             return payload
 
+class input_data_verify():
+
+    def __init__(self):
+        pass
+
+    # ID 중복 체크
+    def IdDuplicatecheck(self, input_id):
+
+        try:
+            user = User.objects.get(user_id=input_id)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e))
+            return True
+        
+        return False
+
+    # Email 중복 체크
+    def EmailDuplicatecheck(self, input_email):
+
+        try:
+            user = User.objects.get(email=input_email)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e))
+            return True
+        
+        return False
+
+    # ID 입력 값 규칙 검증
+    def verify_user_id(self, input_id):
+        pass
+
+    # PW 입력 값 규칙 검증
+    # 10자 이상 & 영어 대문자, 소문자, 숫자, 특수문자 중 2종류 조합
+    # 8자 이상 & 영어 대문자, 소문자, 숫자, 특수문자 중 3종류 조합
+    def verify_user_pw(self, input_pw):
+        pass
+
+    # 이메일 입력 값 규칙 검증
+    def verify_user_email(self, input_email):
+        pass
+
+    # URL 입력 값 규칙 검증
+    def verify_user_url(self, input_url):
+        pass
+
 def create_SECRET_KEY():
     # Get ascii Characters numbers and punctuation (minus quote characters as they could terminate string).
     chars = ''.join([string.ascii_letters, string.digits, string.punctuation]).replace('\'', '').replace('"', '').replace('\\', '')
