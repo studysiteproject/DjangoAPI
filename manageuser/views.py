@@ -84,7 +84,7 @@ class UserCreateView(APIView):
             user_id=post_data['user_id'], 
             user_pw=self.manage_user.create_hash_password(post_data['user_pw']), 
             user_name=post_data['user_name'],
-            email=post_data['email'], 
+            user_email=post_data['email'], 
             user_identity=post_data['user_identity'], 
             )
 
