@@ -240,7 +240,7 @@ class input_data_verify():
     def EmailDuplicatecheck(self, input_email):
 
         try:
-            user = User.objects.get(email=input_email)
+            user = User.objects.get(user_email=input_email)
         except Exception as e:
             print("ERROR NAME : {}".format(e))
             return True
