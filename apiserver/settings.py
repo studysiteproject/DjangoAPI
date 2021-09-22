@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'bbs',
     'manageuser',
     'authuser',
     'rest_framework',
@@ -92,7 +91,7 @@ DATABASES = {
     'default': {
         # 'ENGINE': 'django.db.backends.mysql',
         'ENGINE': 'mysql.connector.django',
-        'NAME': 'sitedb',
+        'NAME': 'sitedb_test',
         'USER': 'root',
         'PASSWORD': 'password1!',
         'HOST': '52.78.216.119',
