@@ -72,7 +72,7 @@ class UserCreateView(APIView):
 
     def post(self, request, *args, **kwargs):
         
-        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'warning_cnt', 'account_state')}
+        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'warning_cnt', 'account_state', 'create_date')}
 
         # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
         verify_post_data_result = self.manage_user.is_valid_post_value(post_data)
@@ -85,7 +85,7 @@ class UserCreateView(APIView):
             user_pw=self.manage_user.create_hash_password(post_data['user_pw']), 
             user_name=post_data['user_name'],
             user_email=post_data['user_email'], 
-            user_identity=post_data['user_identity'], 
+            user_job=post_data['user_job'], 
             )
 
         msg = {'state': 'success', 'detail': 'user create successed'}
@@ -112,7 +112,7 @@ class UserUpdateView(APIView):
         if res.status_code != status.HTTP_200_OK:
             return res
 
-        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'user_id', 'user_pw', 'warning_cnt', 'account_state')}
+        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'user_id', 'user_pw', 'warning_cnt', 'account_state', 'create_date')}
 
         # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
         verify_post_data_result = self.manage_user.is_valid_post_value(post_data)
@@ -179,7 +179,6 @@ class AuthPage(APIView):
     # 사용될 클래스 호출
     auth = jwt_auth()
     manage_user = manage()
-
 
     def get(self, request, *args, **kwargs):
 
