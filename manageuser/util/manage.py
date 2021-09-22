@@ -56,7 +56,7 @@ class manage():
                 if len(post_data[key]) > User._meta.get_field(key).max_length:
                     msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
                     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-        
+
         msg = {'state': 'success', 'detail': 'valid post data'}
         return Response(msg, status=status.HTTP_200_OK)
 

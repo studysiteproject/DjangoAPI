@@ -57,7 +57,7 @@ class UserDetailView(APIView):
         try:
             user = User.objects.get(id=user_index)
         except Exception as e:
-            print("ERROR NAME : {}".format(e))
+            print("ERROR NAME : {}".format(e), flush=True)
             msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
@@ -69,6 +69,7 @@ class UserCreateView(APIView):
 
     # 사용될 클래스 호출
     manage_user = manage()
+    user_data_verify = input_data_verify()
 
     def post(self, request, *args, **kwargs):
         
@@ -79,6 +80,16 @@ class UserCreateView(APIView):
         
         if verify_post_data_result.status_code != 200:
             return verify_post_data_result
+
+        # ID 중복 체크
+        if self.user_data_verify.IdDuplicatecheck(post_data['user_id']) == False:
+            msg = {'state': 'fail', 'detail': 'ID is already in use'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 이메일 중복 체크
+        if self.user_data_verify.EmailDuplicatecheck(post_data['user_email']) == False:
+            msg = {'state': 'fail', 'detail': 'Email is already in use'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         User.objects.create(
             user_id=post_data['user_id'], 
@@ -123,7 +134,7 @@ class UserUpdateView(APIView):
         try:
             user = User.objects.get(id=user_index)
         except Exception as e:
-            print("ERROR NAME : {}".format(e))
+            print("ERROR NAME : {}".format(e), flush=True)
             msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
@@ -158,18 +169,17 @@ class UserDeleteView(APIView):
         try:
             user = User.objects.get(id=user_index)
         except Exception as e:
-            print("ERROR NAME : {}".format(e))
+            print("ERROR NAME : {}".format(e), flush=True)
             msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 유저 삭제 동작
         try:
             user.delete()
-
             msg = {'state': 'success'}
             return Response(msg, status=status.HTTP_200_OK)
         except Exception as e:
-            print("ERROR NAME : {}".format(e))
+            print("ERROR NAME : {}".format(e), flush=True)
             msg = {'state': 'fail', 'detail': 'account delete failed'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 

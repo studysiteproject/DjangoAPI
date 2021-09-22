@@ -231,7 +231,7 @@ class input_data_verify():
         try:
             user = User.objects.get(user_id=input_id)
         except Exception as e:
-            print("ERROR NAME : {}".format(e))
+            print("ERROR NAME : {}".format(e), flush=True)
             return True
         
         return False
@@ -242,7 +242,7 @@ class input_data_verify():
         try:
             user = User.objects.get(user_email=input_email)
         except Exception as e:
-            print("ERROR NAME : {}".format(e))
+            print("ERROR NAME : {}".format(e), flush=True)
             return True
         
         return False
