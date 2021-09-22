@@ -92,7 +92,7 @@ class jwt_auth():
 
             # refresh token 등록
             Refresh.objects.create(
-                    user_index=get_user_index,
+                    user_id=get_user_index,
                     refresh_token=refresh_token
                 )
         except Exception as e:
@@ -106,7 +106,7 @@ class jwt_auth():
 
         # 만약 이미 해당 사용자의 refresh token이 존재한다면 삭제처리
         try:
-            refresh_object = Refresh.objects.get(user_index=index)
+            refresh_object = Refresh.objects.get(user_id=index)
             refresh_object.delete()
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
@@ -119,7 +119,7 @@ class jwt_auth():
 
         # index를 이용하여 refresh token 확인
         try:
-            refresh_object = Refresh.objects.get(user_index=index)
+            refresh_object = Refresh.objects.get(user_id=index)
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             return False
