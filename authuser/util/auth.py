@@ -2,6 +2,7 @@ import jwt
 import datetime
 import os, json
 import string, random
+import boto3
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -19,12 +20,9 @@ class jwt_auth():
 
     # jwt 인코딩에 사용될 사설키 정보를 얻어옴
     def __init__(self):
-        
-        # secrets.json 파일 위치 확인 후 파일내용 얻어오기
-        self.SECRET_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'keyfiles', 'secrets.json') 
-        
-        with open(self.SECRET_FILE) as f:
-            self.SECRET_FILE_DATA = json.loads(f.read())
+        s3_resource = boto3.resource('s3')
+        my_bucket = s3_resource.Bucket(name='deploy-django-api')
+        self.SECRET_FILE_DATA = json.loads(my_bucket.Object('secret/secrets.json').get()['Body'].read())
 
     # access_token 생성
     def create_token(self, payload):
