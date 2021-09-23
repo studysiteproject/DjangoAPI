@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
-import os
+import os, json, yaml, boto3
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +21,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure--6*-hrx$qrl=$h^@6p+-rov%f%%9&8z8uc)4-g#$@x!#lc2ol0'
+# s3에 존재하는 secrets.json 파일에서 SECRET_KEY를 얻어옴
+s3_resource = boto3.resource('s3')
+my_bucket = s3_resource.Bucket(name='deploy-django-api')
+SECRET_FILE_DATA = json.loads(my_bucket.Object('secret/secrets.json').get()['Body'].read())
+SECRET_KEY = SECRET_FILE_DATA['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
