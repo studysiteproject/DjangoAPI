@@ -33,7 +33,7 @@ class UserLogin(APIView):
             user = User.objects.get(user_id=post_data['user_id'])
         except:
             msg = {'state': 'fail', 'detail': 'invalid account info'}
-            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
         # 패스워드 검증
         # 입력한 패스워드(평문)와 입력한 계정 ID를 넣는다.
@@ -42,7 +42,7 @@ class UserLogin(APIView):
         # 잘못된 패스워드일 때
         if verify_password_result == False:
             msg = {'state': 'fail', 'detail': 'invalid account info'}
-            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = UserSerializer(user)
         payload = {
@@ -83,6 +83,7 @@ class UserLogout(APIView):
         res = self.auth.verify_user(access_token, user_index)
 
         # 토큰이 유효하지 않을 때
+        # 200 OK가 아닐 때
         if res.status_code != status.HTTP_200_OK:
             res.data['detail'] = "invalid token. login first"
             return res
@@ -102,7 +103,7 @@ class UserLogout(APIView):
         # refresh token 삭제 실패
         else:
             # 상세 메세지 설정
-            res.status_code = status.HTTP_400_BAD_REQUEST
+            res.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
             res.data['detail'] = "logout failed"
 
             # 쿠키 값 초기화
@@ -119,6 +120,12 @@ class IdDuplicatecheck(APIView):
         
         input_id = request.GET.get('user_id')
 
+        # input_id 필드 미 입력 시
+        if not input_id:
+            msg = {'available': False, 'detail': 'input user id'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 입력받은 ID(user_id 필드)를 사용하여 중복 체크 후 결과 반환
         result = self.input_verify.IdDuplicatecheck(input_id)
         
         # 현재 사용하지 않는 ID일 때 (가입 시 사용 가능한 ID)

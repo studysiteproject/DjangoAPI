@@ -83,12 +83,42 @@ class UserCreateView(APIView):
 
         # ID 중복 체크
         if self.user_data_verify.IdDuplicatecheck(post_data['user_id']) == False:
-            msg = {'state': 'fail', 'detail': 'ID is already in use'}
+            msg = {'state': 'fail', 'detail': 'user_id is already in use'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         # 이메일 중복 체크
         if self.user_data_verify.EmailDuplicatecheck(post_data['user_email']) == False:
-            msg = {'state': 'fail', 'detail': 'Email is already in use'}
+            msg = {'state': 'fail', 'detail': 'user_email is already in use'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 닉네임 중복 체크
+        if self.user_data_verify.NameDuplicatecheck(post_data['user_name']) == False:
+            msg = {'state': 'fail', 'detail': 'user_name is already in use'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        
+        # ID 입력 값 규칙 확인
+        if self.user_data_verify.verify_user_id(post_data['user_id']) == False:
+            msg = {'state': 'fail', 'detail': 'user_id is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        
+        # PW 입력 값 규칙 확인
+        if self.user_data_verify.verify_user_pw(post_data['user_pw']) == False:
+            msg = {'state': 'fail', 'detail': 'user_pw is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # Name 입력 값 규칙 확인
+        if self.user_data_verify.verify_user_name(post_data['user_name']) == False:
+            msg = {'state': 'fail', 'detail': 'user_name is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # Email 입력 값 규칙 확인
+        if self.user_data_verify.verify_user_email(post_data['user_email']) == False:
+            msg = {'state': 'fail', 'detail': 'user_email is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # Job 입력 값 규칙 확인
+        if self.user_data_verify.verify_user_job(post_data['user_job']) == False:
+            msg = {'state': 'fail', 'detail': 'user_job is not conform to the rule'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         User.objects.create(
@@ -108,6 +138,7 @@ class UserUpdateView(APIView):
     # 사용될 클래스 호출
     auth = jwt_auth()
     manage_user = manage()
+    user_data_verify = input_data_verify()
 
     def post(self, request, *args, **kwargs):
 
@@ -125,12 +156,59 @@ class UserUpdateView(APIView):
 
         post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'user_id', 'user_pw', 'warning_cnt', 'account_state', 'create_date')}
 
-        # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
+        ## 업데이트 정보 검증 검증 
+        # 입력 길이 초과
+        # NOT NULL 필드의 데이터 값 미 존재
         verify_post_data_result = self.manage_user.is_valid_post_value(post_data)
         
         if verify_post_data_result.status_code != 200:
             return verify_post_data_result
-        
+
+        ### 업데이트 정보 검증 (중복 확인 & 규칙 확인)
+        for key in post_data:
+            
+            ## 업데이트 정보 중 사용자 이름이 존재할 경우
+            if key == 'user_name':
+                
+                # Name 입력 값 중복 체크
+                if self.user_data_verify.NameDuplicatecheck(post_data['user_name']) == False:
+                    msg = {'state': 'fail', 'detail': 'user_name is already in use'}
+                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+                # Name 입력 값 규칙 확인
+                if self.user_data_verify.verify_user_name(post_data['user_name']) == False:
+                    msg = {'state': 'fail', 'detail': 'user_name is not conform to the rule'}
+                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            
+            ## 업데이트 정보 중 사용자 이메일이 존재할 경우
+            if key == 'user_email':
+                
+                # 이메일 중복 체크
+                if self.user_data_verify.EmailDuplicatecheck(post_data['user_email']) == False:
+                    msg = {'state': 'fail', 'detail': 'user_email is already in use'}
+                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+                # Email 입력 값 규칙 확인
+                if self.user_data_verify.verify_user_email(post_data['user_email']) == False:
+                    msg = {'state': 'fail', 'detail': 'user_email is not conform to the rule'}
+                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 업데이트 정보 중 사용자 Url이 존재할 경우
+            if key == 'user_url':
+
+                # Url 입력 값 규칙 확인
+                if self.user_data_verify.verify_user_url(post_data['user_url']) == False:
+                    msg = {'state': 'fail', 'detail': 'user_url is not conform to the rule'}
+                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 업데이트 정보 중 사용자 Job이 존재할 경우
+            if key == 'user_job':
+                
+                # Job 입력 값 규칙 확인
+                if self.user_data_verify.verify_user_job(post_data['user_job']) == False:
+                    msg = {'state': 'fail', 'detail': 'user_job is not conform to the rule'}
+                    return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             user = User.objects.get(id=user_index)
         except Exception as e:
@@ -176,12 +254,12 @@ class UserDeleteView(APIView):
         # 유저 삭제 동작
         try:
             user.delete()
-            msg = {'state': 'success'}
+            msg = {'state': 'success', 'detail': 'account delete successed'}
             return Response(msg, status=status.HTTP_200_OK)
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             msg = {'state': 'fail', 'detail': 'account delete failed'}
-            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            return Response(msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # 사용자가 인증된 사용자인지(정상적인 로그인을 진행한 상태인지) 확인하는 페이지
 class AuthPage(APIView):
