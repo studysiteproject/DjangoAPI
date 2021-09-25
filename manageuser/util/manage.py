@@ -40,7 +40,7 @@ class manage():
     def is_valid_post_value(self, post_data):
 
         for key in post_data:
-            
+
             # 만약 NULL 값이 허용되지 않는 필드일 때
             if User._meta.get_field(key).empty_strings_allowed == False:
 
@@ -54,9 +54,9 @@ class manage():
 
                 # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
                 if len(post_data[key]) > User._meta.get_field(key).max_length:
-                    msg = {'state': 'fail', 'detail': 'input over max length of {}'.format(key)}
+                    msg = {'state': 'fail', 'detail': 'Input over max length of {}'.format(key)}
                     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-
+            
         msg = {'state': 'success', 'detail': 'valid post data'}
         return Response(msg, status=status.HTTP_200_OK)
 

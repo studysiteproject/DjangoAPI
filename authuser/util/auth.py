@@ -3,6 +3,7 @@ import datetime
 import os, json
 import string, random
 import boto3
+import re
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -136,7 +137,7 @@ class jwt_auth():
         # access_token 검사
         if self.verify_token(access_token):
             # 반환 메세지 설정
-            msg = {'state': 'success'}
+            msg = {'state': 'success', 'detail': 'valid token.'}
 
             res.data = msg
             res.status_code = status.HTTP_200_OK
@@ -167,7 +168,7 @@ class jwt_auth():
                     new_access_token = self.create_token(payload)
 
                     # 반환 메세지 설정
-                    msg = {'state': 'success'}
+                    msg = {'state': 'success', 'detail': 'valid token.'}
 
                     res.data = msg
                     res.status_code = status.HTTP_200_OK
@@ -221,7 +222,18 @@ class jwt_auth():
 class input_data_verify():
 
     def __init__(self):
-        pass
+        self.ID_regex = '^(?=.*[0-9])(?=.*[a-zA-Z])[a-zA-Z0-9-_]{6,20}$'
+        self.NAME_regex = '^[a-zA-Z가-힣0-9\_]{3,20}$'
+        self.Email_regex = '^[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-]+(?:.[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-\]\+])*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$'
+        self.URL_regex = '^(http(s)?:\/\/)[a-zA-Z0-9가-힣-]+\.[a-zA-Z0-9가-힣-\.]+$'
+        self.JOB_keywords = ['student', 'university', 'job-seeker', 'salaryman']
+
+        # 패스워드는 8자리 이상
+        self.PW_regex_case1 = '^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])[a-zA-Z0-9\~\!\@\#\$\^\*\_\+]{8,}$' # 대문자 + 소문자 + 숫자
+        self.PW_regex_case2 = '^(?=.*[A-Z])(?=.*[a-z])(?=.*[\~\!\@\#\$\^\*\_\+])[a-zA-Z0-9\~\!\@\#\$\^\*\_\+]{8,}$' # 대문자 + 소문자 + 특수문자
+        self.PW_regex_case3 = '^(?=.*[a-z])(?=.*[0-9])(?=.*[\~\!\@\#\$\^\*\_\+])[a-zA-Z0-9\~\!\@\#\$\^\*\_\+]{8,}$' # 소문자 + 숫자 + 특수문자
+        self.PW_regex_case4 = '^(?=.*[A-Z])(?=.*[0-9])(?=.*[\~\!\@\#\$\^\*\_\+])[a-zA-Z0-9\~\!\@\#\$\^\*\_\+]{8,}$' # 대문자 + 숫자 + 특수문자
+        self.PW_regex_case5 = '^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[\~\!\@\#\$\^\*\_\+])[a-zA-Z0-9\~\!\@\#\$\^\*\_\+]{8,}$' # 대문자 + 소문자 + 숫자 + 특수문자 
 
     # ID 중복 체크
     def IdDuplicatecheck(self, input_id):
@@ -244,24 +256,47 @@ class input_data_verify():
             return True
         
         return False
+    
+    # Name 중복 체크
+    def NameDuplicatecheck(self, input_name):
+
+        try:
+            user = User.objects.get(user_name=input_name)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return True
+        
+        return False
 
     # ID 입력 값 규칙 검증
     def verify_user_id(self, input_id):
-        pass
+        return True if re.compile(self.ID_regex).search(input_id) else False
 
     # PW 입력 값 규칙 검증
-    # 10자 이상 & 영어 대문자, 소문자, 숫자, 특수문자 중 2종류 조합
-    # 8자 이상 & 영어 대문자, 소문자, 숫자, 특수문자 중 3종류 조합
+    # 8자 이상 & 영어 대문자, 소문자, 숫자, 특수문자 중 3종류 선택 조합
     def verify_user_pw(self, input_pw):
-        pass
+        if re.compile(self.PW_regex_case1).search(input_pw): return True
+        elif re.compile(self.PW_regex_case2).search(input_pw): return True
+        elif re.compile(self.PW_regex_case3).search(input_pw): return True
+        elif re.compile(self.PW_regex_case4).search(input_pw): return True
+        elif re.compile(self.PW_regex_case5).search(input_pw): return True
+        else: return False
+
+    # Name 입력 값 규칙 검증
+    def verify_user_name(self, input_name):
+        return True if re.compile(self.NAME_regex).search(input_name) else False
 
     # 이메일 입력 값 규칙 검증
     def verify_user_email(self, input_email):
-        pass
+        return True if re.compile(self.Email_regex).search(input_email) else False
 
     # URL 입력 값 규칙 검증
     def verify_user_url(self, input_url):
-        pass
+        return True if re.compile(self.URL_regex).search(input_url) else False
+
+    # JOB 입력 값 규칙 검증
+    def verify_user_job(self, input_job):
+        return True if input_job in self.JOB_keywords else False
 
 def create_SECRET_KEY():
     # Get ascii Characters numbers and punctuation (minus quote characters as they could terminate string).
