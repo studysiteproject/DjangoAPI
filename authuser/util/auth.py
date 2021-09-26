@@ -307,7 +307,7 @@ class mail_auth():
     EMAIL_TOKEN_EXP = 30 # 30 min
     LOCAL_SERVER = "127.0.0.1:8000"
     DEPLOY_SERVER = "54.180.143.223"
-    USE_SERVER = LOCAL_SERVER
+    USE_SERVER = DEPLOY_SERVER
 
     def __init__(self):
         # jwt 인코딩에 사용될 사설키 정보를 얻어옴
@@ -327,7 +327,7 @@ class mail_auth():
 
         auth_url = "http://{}/auth/email/verify?".format(self.USE_SERVER) + parse.urlencode(query, doseq=True)
 
-        self.title = '가입 인증 제목입니다.'
+        self.title = '스터디 가입 인증 메일입니다.'
         self.body = '이메일 인증 URL 입니다.\n{}\n{}분 안에 링크를 클릭하여 인증하세요.'.format(auth_url, self.EMAIL_TOKEN_EXP)
 
         self.email.subject=self.title
