@@ -222,7 +222,7 @@ class jwt_auth():
 class input_data_verify():
 
     def __init__(self):
-        self.ID_regex = '^(?=.*[0-9])(?=.*[a-zA-Z])[a-zA-Z0-9-_]{6,20}$'
+        self.ID_regex = '^[a-zA-Z0-9-_]{6,20}$'
         self.NAME_regex = '^[a-zA-Z가-힣0-9\_]{3,20}$'
         self.Email_regex = '^[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-]+(?:.[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-\]\+])*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$'
         self.URL_regex = '^(http(s)?:\/\/)[a-zA-Z0-9가-힣-]+\.[a-zA-Z0-9가-힣-\.]+$'
