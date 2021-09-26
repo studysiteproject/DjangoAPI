@@ -285,4 +285,4 @@ class AuthPage(APIView):
         # 상세 메세지 설정
         res.data['detail'] = 'YOUR ACCOUNT ID is ' + self.manage_user.get_user_id(user_index)
 
-        return res 
+        return res
