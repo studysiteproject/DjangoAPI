@@ -4,6 +4,7 @@ import os, json
 import string, random
 import boto3
 import re
+from urllib import parse
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,6 +13,8 @@ from authuser.serializers import RefreshSerializer
 
 from manageuser.models import User
 from manageuser.util.manage import *
+
+from django.core.mail import EmailMessage
 
 class jwt_auth():
 
@@ -297,6 +300,69 @@ class input_data_verify():
     # JOB 입력 값 규칙 검증
     def verify_user_job(self, input_job):
         return True if input_job in self.JOB_keywords else False
+
+class mail_auth():
+
+    PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDhNtVNetb9y/OtT7lAOtfz17+m\nvCZqa2uXPlGV2f1ECj2UEAbI/qU+dgMreveSgb+GRDGQngGPe+vNfLdm61UVXSpC\n68kMWIxJYskhFCvMUZ/wqel2zIWXySe7ZcZG7KbW3//cDnxfSKvIZKezRABPy3tD\n8oLzbE/EO6dbUgCIIQIDAQAB\n-----END PUBLIC KEY-----"""
+    EMAIL_TOKEN_EXP = 30 # 30 min
+    LOCAL_SERVER = "127.0.0.1:8000"
+    DEPLOY_SERVER = "54.180.143.223"
+    USE_SERVER = LOCAL_SERVER
+
+    def __init__(self):
+        # jwt 인코딩에 사용될 사설키 정보를 얻어옴
+        s3_resource = boto3.resource('s3')
+        my_bucket = s3_resource.Bucket(name='deploy-django-api')
+        self.SECRET_FILE_DATA = json.loads(my_bucket.Object('secret/secrets.json').get()['Body'].read())
+
+        # Email 클래스 사용
+        self.email = EmailMessage()
+    
+    def send_auth_mail(self, send_to_email):
+
+        payload = {'auth_mail': send_to_email}
+        mail_auth_token = self.create_mail_token(payload)
+
+        query = {'user_mail_auth_token': mail_auth_token}
+
+        auth_url = "http://{}/auth/email/verify?".format(self.USE_SERVER) + parse.urlencode(query, doseq=True)
+
+        self.title = '가입 인증 제목입니다.'
+        self.body = '이메일 인증 URL 입니다.\n{}\n{}분 안에 링크를 클릭하여 인증하세요.'.format(auth_url, self.EMAIL_TOKEN_EXP)
+
+        self.email.subject=self.title
+        self.email.body=self.body
+        self.email.to = [send_to_email]
+        self.email.send()
+
+        return True
+
+    # mail 인증 token 생성
+    def create_mail_token(self, payload):
+        
+        payload['exp'] = datetime.datetime.utcnow() + datetime.timedelta(minutes=self.EMAIL_TOKEN_EXP)
+
+        try:
+            token = jwt.encode(
+                payload,
+                self.SECRET_FILE_DATA['PRIVATE_KEY'],
+                algorithm = "RS256"
+            )
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return False
+
+        return token
+
+    # mail 인증 token 인증
+    def verify_mail_token(self, token):
+        try:
+            jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            return False
+        else:
+            return True
 
 def create_SECRET_KEY():
     # Get ascii Characters numbers and punctuation (minus quote characters as they could terminate string).
