@@ -46,6 +46,8 @@ class UserDetailView(APIView):
         access_token = request.COOKIES.get('access_token')
         user_index = request.COOKIES.get('index')
 
+        print("TEST" + access_token, flush=True)
+
         # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
         # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
         res = self.auth.verify_user(access_token, user_index)
