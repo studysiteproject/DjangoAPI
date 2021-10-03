@@ -146,8 +146,8 @@ class jwt_auth():
             res.status_code = status.HTTP_200_OK
 
             # 쿠키 값 설정
-            res.set_cookie('access_token', access_token, httponly=True, secure=True, samesite='None')
-            res.set_cookie('index', user_index, httponly=True, secure=True, samesite='None')
+            res.set_cookie('access_token', access_token, httponly=True, secure=True, samesite='none')
+            res.set_cookie('index', user_index, httponly=True, secure=True, samesite='none')
             return res
 
         # access_token이 유효하지 않을 때
@@ -177,8 +177,8 @@ class jwt_auth():
                     res.status_code = status.HTTP_200_OK
 
                     # 쿠키 값 설정
-                    res.set_cookie('access_token', new_access_token, httponly=True, secure=True, samesite='None')
-                    res.set_cookie('index', user_index, httponly=True, secure=True, samesite='None')
+                    res.set_cookie('access_token', new_access_token, httponly=True, secure=True, samesite='none')
+                    res.set_cookie('index', user_index, httponly=True, secure=True, samesite='none')
 
                     return res
 
