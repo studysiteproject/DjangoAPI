@@ -73,4 +73,4 @@ class ReportUser(APIView):
         )
 
         msg = {'state': 'success', 'detail': 'Reports have been completed'}
-        return Response(msg, status=status.HTTP_200_OK)
+        return Response(msg, status=status.HTTP_201_CREATED)
