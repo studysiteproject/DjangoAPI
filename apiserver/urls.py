@@ -20,5 +20,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('manageuser.urls')),
     path('auth/', include('authuser.urls')),
-    # path('report/', include('managereport.urls')),
 ]
