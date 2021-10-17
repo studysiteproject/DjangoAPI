@@ -16,6 +16,9 @@ from manageuser.util.manage import *
 
 from django.core.mail import EmailMessage
 
+from django.conf import settings
+COOKIE_DOMAIN = getattr(settings, 'COOKIE_DOMAIN', None)
+
 class jwt_auth():
 
     PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDhNtVNetb9y/OtT7lAOtfz17+m\nvCZqa2uXPlGV2f1ECj2UEAbI/qU+dgMreveSgb+GRDGQngGPe+vNfLdm61UVXSpC\n68kMWIxJYskhFCvMUZ/wqel2zIWXySe7ZcZG7KbW3//cDnxfSKvIZKezRABPy3tD\n8oLzbE/EO6dbUgCIIQIDAQAB\n-----END PUBLIC KEY-----"""
@@ -146,8 +149,8 @@ class jwt_auth():
             res.status_code = status.HTTP_200_OK
 
             # 쿠키 값 설정
-            res.set_cookie('access_token', access_token, httponly=True, secure=True, samesite='none', domain='localhost')
-            res.set_cookie('index', user_index, httponly=True, secure=True, samesite='none', domain='localhost')
+            res.set_cookie('access_token', access_token, httponly=True, secure=True, samesite='none', domain=COOKIE_DOMAIN)
+            res.set_cookie('index', user_index, httponly=True, secure=True, samesite='none', domain=COOKIE_DOMAIN)
             return res
 
         # access_token이 유효하지 않을 때
@@ -177,8 +180,8 @@ class jwt_auth():
                     res.status_code = status.HTTP_200_OK
 
                     # 쿠키 값 설정
-                    res.set_cookie('access_token', new_access_token, httponly=True, secure=True, samesite='none', domain='localhost')
-                    res.set_cookie('index', user_index, httponly=True, secure=True, samesite='none', domain='localhost')
+                    res.set_cookie('access_token', new_access_token, httponly=True, secure=True, samesite='none', domain=COOKIE_DOMAIN)
+                    res.set_cookie('index', user_index, httponly=True, secure=True, samesite='none', domain=COOKIE_DOMAIN)
 
                     return res
 
