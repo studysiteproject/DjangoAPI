@@ -15,6 +15,7 @@ from manageuser.serializers import UserSerializer
 
 from django.conf import settings
 COOKIE_DOMAIN = getattr(settings, 'COOKIE_DOMAIN', None)
+COOKIE_SECURE = getattr(settings, 'COOKIE_SECURE', None)
 
 # Create your views here.
 class UserLogin(APIView):
@@ -66,8 +67,8 @@ class UserLogin(APIView):
         res = Response(msg, status=status.HTTP_200_OK)
 
         # 쿠키 값 설정
-        res.set_cookie('access_token', access_token, httponly=True, secure=True, samesite='none', domain=COOKIE_DOMAIN)
-        res.set_cookie('index', user_index, httponly=True, secure=True, samesite='none', domain=COOKIE_DOMAIN)
+        res.set_cookie('access_token', access_token, httponly=True, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
+        res.set_cookie('index', user_index, httponly=True, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
 
         return res
 
