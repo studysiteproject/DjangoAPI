@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.core.mail',
     'manageuser',
+    'managestudy',
     'authuser',
     'rest_framework',
 ]
