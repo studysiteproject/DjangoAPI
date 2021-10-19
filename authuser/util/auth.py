@@ -52,7 +52,7 @@ class jwt_auth():
     # access token 인증
     def verify_token(self, token):
         try:
-            jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')
+            payload = jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             return False
@@ -141,6 +141,20 @@ class jwt_auth():
         
         res = Response()
 
+        # 유저 index 얻기
+        payload = self.get_payload(access_token)
+
+        # access_token 변조 시 또는 user_index 쿠키 값 변조 시 로그아웃
+        if payload == False or int(user_index) != payload['user_index']:
+
+            # 토큰 삭제
+            res.delete_cookie('access_token')
+
+            msg = {'state': 'fail', 'detail': 'Not match token and user index in Cookie'}
+            res = Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            
+            return res
+
         # access_token 검사
         if self.verify_token(access_token):
             # 반환 메세지 설정
@@ -170,7 +184,8 @@ class jwt_auth():
                     
                     # 새로운 access_token 발급 후
                     payload = {
-                        'user_id': manage_user.get_user_id(user_index)
+                        'user_id': manage_user.get_user_id(user_index),
+                        'user_index': user_index
                     }
 
                     new_access_token = self.create_token(payload)
@@ -220,7 +235,7 @@ class jwt_auth():
     # access token의 payload를 얻기
     def get_payload(self, token):
         try:
-            payload = jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')
+            payload = jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256', options={"verify_signature": False})
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             return False
