@@ -51,7 +51,8 @@ class UserLogin(APIView):
 
         serializer = UserSerializer(user)
         payload = {
-            'user_id': serializer.data['user_id']
+            'user_id': serializer.data['user_id'],
+            'user_index' : serializer.data['id']
             }
 
         # JWT 토큰 생성
@@ -90,9 +91,8 @@ class UserLogout(APIView):
         # 토큰이 유효하지 않을 때
         # 200 OK가 아닐 때
         if res.status_code != status.HTTP_200_OK:
-            res.data['detail'] = "invalid token. login first"
             return res
-        
+
         # refresh token 삭제 성공
         if self.auth.delete_refresh_token(user_index):
             
