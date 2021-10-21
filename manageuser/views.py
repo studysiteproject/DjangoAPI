@@ -222,7 +222,7 @@ class UserUpdateView(APIView):
         user.save()
 
         msg = {'state': 'success', 'detail': 'update successed'}
-        return Response(msg, status=status.HTTP_201_CREATED)
+        return Response(msg, status=status.HTTP_200_OK)
 
 # 현재 로그인한 사용자를 탈퇴 시키는 기능
 class UserDeleteView(APIView):

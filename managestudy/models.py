@@ -5,7 +5,7 @@ from manageuser.models import User
 class Study(models.Model):
     id = models.BigAutoField(primary_key=True)
     title = models.CharField(max_length=50)
-    user_id = models.ForeignKey("manageuser.User", on_delete=models.CASCADE, db_column="user_id")
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user_id")
     maxman = models.IntegerField()
     nowman = models.IntegerField(default=1, null=True)
     create_date = models.DateTimeField(auto_now_add=True, null=True)
@@ -27,6 +27,7 @@ class StudyComment(models.Model):
     comment_order = models.IntegerField(default=0, null=True)
     comment_group = models.IntegerField(null=True)
     comment_visible = models.BooleanField(default=False, null=True)
+    comment_state = models.CharField(max_length=15, default='active')
     create_date = models.DateTimeField(auto_now_add=True, null=True)
 
     class Meta:
