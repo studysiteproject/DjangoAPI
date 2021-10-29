@@ -55,7 +55,8 @@ class CreateOrViewComments(APIView):
             return res
 
         # post로 전송된 값을 확인
-        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key in ('comment')}
+        data = json.loads(request.body)
+        post_data = {key: data[key] for key in data.keys() if key in ('comment')}
         
         # 새로 추가될 댓글의 group_num을 구한다.
         # 가장 마지막으로 달린 부모 댓글의 group_num을 얻어온다.
@@ -109,7 +110,8 @@ class CreateReplyComment(APIView):
             return res
 
         # post로 전송된 값을 확인
-        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key in ('comment')}
+        data = json.loads(request.body)
+        post_data = {key: data[key] for key in data.keys() if key in ('comment')}
 
         # 부모댓글의 정보를 불러온다.
         try:

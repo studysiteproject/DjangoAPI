@@ -73,7 +73,8 @@ class UserCreateView(APIView):
 
     def post(self, request, *args, **kwargs):
         
-        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'warning_cnt', 'account_state', 'create_date')}
+        data = json.loads(request.body)
+        post_data = {key: data[key] for key in data.keys() if key not in ('id', 'warning_cnt', 'account_state', 'create_date')}
 
         # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
         verify_post_data_result = self.manage_user.is_valid_post_value(post_data)
@@ -154,7 +155,9 @@ class UserUpdateView(APIView):
         if res.status_code != status.HTTP_200_OK:
             return res
 
-        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key not in ('id', 'user_id', 'user_pw', 'warning_cnt', 'account_state', 'create_date')}
+        # post 데이터 확인
+        data = json.loads(request.body)
+        post_data = {key: data[key] for key in data.keys() if key not in ('id', 'user_id', 'user_pw', 'warning_cnt', 'account_state', 'create_date')}
 
         ## 업데이트 정보 검증 검증 
         # 입력 길이 초과
@@ -308,7 +311,9 @@ class ReportUser(APIView):
         if res.status_code != status.HTTP_200_OK:
             return res
 
-        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key in ('study_id', 'reported_id', 'description')}
+        # post 데이터 확인
+        data = json.loads(request.body)
+        post_data = {key: data[key] for key in data.keys() if key in ('study_id', 'reported_id', 'description')}
 
         study_id = int(post_data['study_id'])
         reported_id = int(post_data['reported_id'])
