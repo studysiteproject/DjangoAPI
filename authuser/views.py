@@ -24,8 +24,9 @@ class UserLogin(APIView):
     manage_user = manage()
 
     def post(self, request, *args, **kwargs):
-
-        post_data = {key: request.POST.get(key) for key in ('user_id', 'user_pw')}
+        
+        data = json.loads(request.body)
+        post_data = {key: data[key] for key in ('user_id', 'user_pw')}
         
         # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
         verify_post_data_result = self.manage_user.is_valid_post_value(post_data)

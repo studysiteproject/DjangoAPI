@@ -181,7 +181,8 @@ class UpdateOrDeleteComment(APIView):
             return res
 
         # post로 전송된 값을 확인
-        post_data = {key: request.POST.get(key) for key in request.POST.keys() if key in ('comment')}
+        data = json.loads(request.body)
+        post_data = {key: data[key] for key in data.keys() if key in ('comment')}
 
         try:
             comment_obj = StudyComment.objects.filter(id=comment_id, user_id=user_index, study_id=study_id).get()

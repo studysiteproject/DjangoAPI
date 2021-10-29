@@ -24,18 +24,17 @@ class UploadImage(APIView):
 
     def post(self, request):
 
-        # # access_token, user_index를 얻어온다.
-        # access_token = request.COOKIES.get('access_token')
-        # user_index = request.COOKIES.get('index')
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
 
-        # # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
-        # # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
-        # res = self.auth.verify_user(access_token,user_index)
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token,user_index)
 
-        # # 토큰이 유효하지 않을 때
-        # if res.status_code != status.HTTP_200_OK:
-        #     return res
-        user_index = 3
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
 
         # 업로드 된 파일의 정보를 얻어옴
         file = request.FILES['image']
