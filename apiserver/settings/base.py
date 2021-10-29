@@ -28,9 +28,7 @@ SECRET_FILE_DATA = json.loads(my_bucket.Object('secret/secrets.json').get()['Bod
 SECRET_KEY = SECRET_FILE_DATA['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -44,8 +42,10 @@ INSTALLED_APPS = [
     'django.core.mail',
     'manageuser',
     'managestudy',
+    'manageprofile',
     'authuser',
     'rest_framework',
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
@@ -62,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'apiserver.urls'

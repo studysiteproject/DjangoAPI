@@ -8,6 +8,8 @@ from .models import User, Applicationlist, UserReport
 from .serializers import UserSerializer
 from .util.manage import *
 
+import boto3, json, base64, os
+
 # 인증에 사용되는 클래스 (authuser app)
 from authuser.util.auth import *
 
