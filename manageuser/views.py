@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from .models import User, Applicationlist, UserReport
+from manageprofile.models import ProfileImage
 from .serializers import UserSerializer
 from .util.manage import *
 
@@ -124,13 +125,19 @@ class UserCreateView(APIView):
             msg = {'state': 'fail', 'detail': 'user_job is not conform to the rule'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
-        User.objects.create(
+        # 유저 생성
+        new_user = User.objects.create(
             user_id=post_data['user_id'], 
             user_pw=self.manage_user.create_hash_password(post_data['user_pw']), 
             user_name=post_data['user_name'],
             user_email=post_data['user_email'], 
             user_job=post_data['user_job'], 
             )
+
+        # 기본 프로필 이미지 설정 (새로 생성된 유저의 index 이용)
+        ProfileImage.objects.create(
+            user_id=new_user
+        )
 
         msg = {'state': 'success', 'detail': 'user create successed'}
         return Response(msg, status=status.HTTP_201_CREATED)

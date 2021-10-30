@@ -1,9 +1,0 @@
-### Django ###
-*.log
-*.pot
-*.pyc
-__pycache__/
-local.py
-db.sqlite3
-.DS_Store
-.gitignore
