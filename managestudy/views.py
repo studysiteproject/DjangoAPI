@@ -36,7 +36,7 @@ class CreateOrViewComments(APIView):
             if comment_item['comment_state'] == 'delete':
                 comment_item['comment'] = "이 댓글은 삭제된 상태입니다."
             elif comment_item['comment_state'] == 'block':
-                comment_item['comment'] = "이 댓글은 삭제된 상태입니다."
+                comment_item['comment'] = "이 댓글은 신고된 상태입니다."
 
         return Response(comment_data, status=status.HTTP_200_OK)
 
@@ -221,6 +221,7 @@ class UpdateOrDeleteComment(APIView):
         # comment_obj.delete()
         # comment_state 값을 delete 상태로 바꿔준다.
         setattr(comment_obj, "comment_state", "delete")
+        
         msg = {'state': 'success', 'detail': 'comment delete successed'}
         return Response(msg, status=status.HTTP_200_OK)
 
@@ -270,7 +271,7 @@ class UpdateVisibleComment(APIView):
         try:
             comment_obj = StudyComment.objects.filter(id=comment_id, study_id=study_id).get()
         except:
-            msg = {'state': 'fail', 'detail': 'comment does not exist. check comment please'}
+            msg = {'state': 'fail', 'detail': 'comment does not exist. check comment please.'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         # 댓글의 내용 변경 & 저장
@@ -281,5 +282,5 @@ class UpdateVisibleComment(APIView):
 
         comment_obj.save()
 
-        msg = {'state': 'success', 'detail': 'visible update successed'}
+        msg = {'state': 'success', 'detail': 'visible update successed.'}
         return Response(msg, status=status.HTTP_200_OK)    

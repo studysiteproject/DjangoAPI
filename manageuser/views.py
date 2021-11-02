@@ -150,7 +150,7 @@ class UserUpdateView(APIView):
     manage_user = manage()
     user_data_verify = input_data_verify()
 
-    def post(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
 
         # access_token, user_index를 얻어온다.
         access_token = request.COOKIES.get('access_token')
@@ -242,7 +242,7 @@ class UserDeleteView(APIView):
     # 사용될 클래스 호출
     auth = jwt_auth()
 
-    def get(self, request, *args, **kwargs):
+    def delete(self, request, *args, **kwargs):
         
         # access_token, user_index를 얻어온다.
         access_token = request.COOKIES.get('access_token')
