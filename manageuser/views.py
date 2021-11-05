@@ -273,6 +273,78 @@ class UserDeleteView(APIView):
             msg = {'state': 'fail', 'detail': 'account delete failed'}
             return Response(msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+# 패스워드를 업데이트 하는 기능
+class UserUpdatePassword(APIView):
+
+    # 사용될 클래스 호출
+    auth = jwt_auth()
+    manage_user = manage()
+    user_data_verify = input_data_verify()
+
+    def put(self, request):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token,user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        # 현재 패스워드 / 새로 입력한 패스워드 / 새로운 패스워드 확인 3가지를 입력받는다. (post 데이터 확인)
+        data = json.loads(request.body)
+        post_data = {key: data[key] for key in data.keys() if key in ('user_pw', 'new_user_pw', 'check_new_pw')}
+
+        # 패스워드 3가지의 입력값이 규칙에 맞는지 검증한다.
+        for key, pw_data in post_data.items():
+            if self.user_data_verify.verify_user_pw(pw_data) == False:
+                msg = {'state': 'fail', 'detail': '{} is not conform to the rule'.format(key)}
+                return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 새로 입력한 패스워드와 확인 패스워드가 다른지 확인한다.
+        if data['new_user_pw'] != data['check_new_pw']:
+            msg = {'status': 'false', 'msg': 'new_user_pw and check_new_pw are not the same.'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 현재 패스워드가 동일한지 확인한다.
+        # 입력한 패스워드(평문)와 계정의 인덱스를 사용한다.
+        verify_password_result = self.manage_user.verify_password(post_data['user_pw'], user_index)
+
+        # 잘못된 패스워드일 때
+        if verify_password_result == False:
+            msg = {'state': 'fail', 'detail': 'invalid password. This password is not current account password.'}
+            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 현재 계정의 패스워드와 새로운 패스워드가 동일한지 확인한다.
+        if data['user_pw'] == data['new_user_pw']:
+            msg = {'status': 'false', 'msg': 'current password and new password are the same.'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 새로 입력한 패스워드로 사용자의 패스워드를 업데이트 한다.
+        try:
+            user = User.objects.get(id=user_index)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
+            return Response(msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # 새로운 패스워드로 패스워드를 변경한다.
+        new_password = self.manage_user.create_hash_password(post_data['new_user_pw'])
+        setattr(user, "user_pw", new_password)
+        user.save()
+
+        # 패스워드 변경 후 로그아웃 처리
+        res = logout(res, user_index)
+
+        msg = {'state': 'succes', 'detail': 'password update success.'}
+        res.data = msg
+
+        return res
+
 # 사용자가 인증된 사용자인지(정상적인 로그인을 진행한 상태인지) 확인하는 페이지
 class AuthPage(APIView):
 

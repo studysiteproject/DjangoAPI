@@ -60,13 +60,32 @@ class manage():
         msg = {'state': 'success', 'detail': 'valid post data'}
         return Response(msg, status=status.HTTP_200_OK)
 
+    # data verify for specific key
+    def is_valid_one_value(self, data, key):
+        # 만약 NULL 값이 허용되지 않는 필드일 때
+        if User._meta.get_field(key).empty_strings_allowed == False:
+
+            # 입력된 데이터가 존재하지 않을 때
+            if not data:
+                msg = {'state': 'fail', 'detail': 'No Data For {}'.format(key)}
+                return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 만약 제한 길이가 존재하는 필드일 때
+        if User._meta.get_field(key).max_length != None:
+
+            # 입력된 데이터가 해당 필드의 제한 길이보다 긴 데이터일 때
+            if len(data) > User._meta.get_field(key).max_length:
+                msg = {'state': 'fail', 'detail': 'Input over max length of {}'.format(key)}
+                return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            
+        msg = {'state': 'success', 'detail': 'valid post data'}
+        return Response(msg, status=status.HTTP_200_OK)
+
     def create_hash_password(self, password):
         hash_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         return hash_password.decode('utf-8')
 
-    def verify_password(self, password, user_id):
-
-        user_index = self.get_user_index(user_id)
+    def verify_password(self, password, user_index):
 
         try:
             user_object = User.objects.get(id=user_index)

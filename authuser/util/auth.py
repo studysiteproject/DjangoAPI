@@ -384,6 +384,35 @@ class mail_auth():
         else:
             return True
 
+# 로그아웃을 해주는 함수
+def logout(res, user_index):
+
+    auth = jwt_auth()
+
+    # refresh token 삭제 성공
+    if auth.delete_refresh_token(user_index):
+        
+        # 상세 메세지 설정
+        res.data['detail'] = "logout succeeded"
+        
+        # 쿠키 값 초기화
+        res.delete_cookie('access_token')
+        res.delete_cookie('index')
+
+        return res
+    
+    # refresh token 삭제 실패
+    else:
+        # 상세 메세지 설정
+        res.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        res.data['detail'] = "logout failed"
+
+        # 쿠키 값 초기화
+        res.delete_cookie('access_token')
+        res.delete_cookie('index')
+
+        return res
+
 def create_SECRET_KEY():
     # Get ascii Characters numbers and punctuation (minus quote characters as they could terminate string).
     chars = ''.join([string.ascii_letters, string.digits, string.punctuation]).replace('\'', '').replace('"', '').replace('\\', '')
