@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Refresh
 from rest_framework import HTTP_HEADER_ENCODING, status
-from .util.auth import jwt_auth, input_data_verify, mail_auth
+from .util.auth import jwt_auth, input_data_verify, logout, mail_auth
 from urllib.parse import unquote
 
 # 유저 확인을 위해 managemodel의 앱 기능 사용
@@ -43,7 +43,7 @@ class UserLogin(APIView):
 
         # 패스워드 검증
         # 입력한 패스워드(평문)와 입력한 계정 ID를 넣는다.
-        verify_password_result = self.manage_user.verify_password(post_data['user_pw'], post_data['user_id'])
+        verify_password_result = self.manage_user.verify_password(post_data['user_pw'], user.id)
 
         # 잘못된 패스워드일 때
         if verify_password_result == False:
@@ -94,29 +94,10 @@ class UserLogout(APIView):
         if res.status_code != status.HTTP_200_OK:
             return res
 
-        # refresh token 삭제 성공
-        if self.auth.delete_refresh_token(user_index):
-            
-            # 상세 메세지 설정
-            res.data['detail'] = "logout succeeded"
-            
-            # 쿠키 값 초기화
-            res.delete_cookie('access_token')
-            res.delete_cookie('index')
+        # 현재 jwt 인증 상태와 유저 index를 사용하여 로그아웃 처리
+        res = logout(res, user_index)
 
-            return res
-        
-        # refresh token 삭제 실패
-        else:
-            # 상세 메세지 설정
-            res.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-            res.data['detail'] = "logout failed"
-
-            # 쿠키 값 초기화
-            res.delete_cookie('access_token')
-            res.delete_cookie('index')
-
-            return res
+        return res
 
 class IdDuplicatecheck(APIView):
 
@@ -237,4 +218,43 @@ class VerifyAuthEmail(APIView):
         user.save()
 
         msg = {'state': 'success', 'detail': 'this account is activated!'}
+        return Response(msg, status=status.HTTP_200_OK)
+
+class VerifyPassword(APIView):
+
+    auth = jwt_auth()
+    manage_user = manage()
+
+    def post(self, request):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        # 200 OK가 아닐 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        # 유저 패스워드만 얻어온다.
+        data = json.loads(request.body)
+        post_data = {"user_pw": data['user_pw']}
+        
+        # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
+        verify_post_data_result = self.manage_user.is_valid_post_value(post_data)
+
+        # 패스워드 검증
+        # 입력한 패스워드(평문)와 계정의 인덱스를 사용한다.
+        verify_password_result = self.manage_user.verify_password(post_data['user_pw'], user_index)
+
+        # 잘못된 패스워드일 때
+        if verify_password_result == False:
+            msg = {'state': 'fail', 'detail': 'invalid account info'}
+            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+        
+        msg = {'state': 'success', 'detail': 'valid password.'}
         return Response(msg, status=status.HTTP_200_OK)

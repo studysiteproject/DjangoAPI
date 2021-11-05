@@ -6,6 +6,7 @@ urlpatterns = [
     path('logout', UserLogout.as_view()),
     path('id_duplicate_check', IdDuplicatecheck.as_view()),
     path('verify_user', TokenAuth.as_view()),
+    path('password/verify', VerifyPassword.as_view()),
     path('email/send', SendAuthEmail.as_view()),
     path('email/verify', VerifyAuthEmail.as_view()),
 ]
