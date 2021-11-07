@@ -16,6 +16,9 @@ import os, json, yaml, boto3
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# 공개키가 저장된 파일의 내용을 얻어온다.
+with open(os.path.dirname(os.path.realpath(__file__)) + "/../key/public.pem", "r") as f:
+    PUBLIC_KEY = f.read()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/

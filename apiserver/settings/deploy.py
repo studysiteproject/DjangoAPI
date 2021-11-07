@@ -24,3 +24,5 @@ ALLOWED_HOSTS = ['*']
 
 COOKIE_DOMAIN = 'catchstudys.com'
 COOKIE_SECURE = True
+
+USE_SERVER = "api.catchstudys.com"

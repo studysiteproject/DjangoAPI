@@ -317,7 +317,7 @@ class UserUpdatePassword(APIView):
         # 잘못된 패스워드일 때
         if verify_password_result == False:
             msg = {'state': 'fail', 'detail': 'invalid password. This password is not current account password.'}
-            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 현재 계정의 패스워드와 새로운 패스워드가 동일한지 확인한다.
         if data['user_pw'] == data['new_user_pw']:

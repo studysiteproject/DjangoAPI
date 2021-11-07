@@ -16,13 +16,15 @@ from manageuser.util.manage import *
 
 from django.core.mail import EmailMessage
 
+# 설정에 작성된 값 가져오기
 from django.conf import settings
+PUBLIC_KEY = getattr(settings, 'PUBLIC_KEY', None)
 COOKIE_DOMAIN = getattr(settings, 'COOKIE_DOMAIN', None)
 COOKIE_SECURE = getattr(settings, 'COOKIE_SECURE', None)
+USE_SERVER = getattr(settings, 'USE_SERVER', None)
 
 class jwt_auth():
 
-    PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDhNtVNetb9y/OtT7lAOtfz17+m\nvCZqa2uXPlGV2f1ECj2UEAbI/qU+dgMreveSgb+GRDGQngGPe+vNfLdm61UVXSpC\n68kMWIxJYskhFCvMUZ/wqel2zIWXySe7ZcZG7KbW3//cDnxfSKvIZKezRABPy3tD\n8oLzbE/EO6dbUgCIIQIDAQAB\n-----END PUBLIC KEY-----"""
     TOKEN_EXP = 300 # 300 seconds
     REFRESH_TOKEN_EXP = 1 # 1 day
 
@@ -52,7 +54,7 @@ class jwt_auth():
     # access token 인증
     def verify_token(self, token):
         try:
-            payload = jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')
+            payload = jwt.decode(token, PUBLIC_KEY, algorithms='RS256')
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             return False
@@ -80,7 +82,7 @@ class jwt_auth():
     # refresh token 인증
     def verify_refresh_token(self, refresh_token):
         try:
-            jwt.decode(refresh_token, self.PUBLIC_KEY, algorithms='RS256')
+            jwt.decode(refresh_token, PUBLIC_KEY, algorithms='RS256')
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             return False
@@ -235,7 +237,7 @@ class jwt_auth():
     # access token의 payload를 얻기
     def get_payload(self, token):
         try:
-            payload = jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256', options={"verify_signature": False})
+            payload = jwt.decode(token, PUBLIC_KEY, algorithms='RS256', options={"verify_signature": False})
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             return False
@@ -323,11 +325,7 @@ class input_data_verify():
 
 class mail_auth():
 
-    PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDhNtVNetb9y/OtT7lAOtfz17+m\nvCZqa2uXPlGV2f1ECj2UEAbI/qU+dgMreveSgb+GRDGQngGPe+vNfLdm61UVXSpC\n68kMWIxJYskhFCvMUZ/wqel2zIWXySe7ZcZG7KbW3//cDnxfSKvIZKezRABPy3tD\n8oLzbE/EO6dbUgCIIQIDAQAB\n-----END PUBLIC KEY-----"""
     EMAIL_TOKEN_EXP = 30 # 30 min
-    LOCAL_SERVER = "127.0.0.1:8000"
-    DEPLOY_SERVER = "54.180.143.223"
-    USE_SERVER = DEPLOY_SERVER
 
     def __init__(self):
         # jwt 인코딩에 사용될 사설키 정보를 얻어옴
@@ -345,7 +343,7 @@ class mail_auth():
 
         query = {'user_mail_auth_token': mail_auth_token}
 
-        auth_url = "http://{}/auth/email/verify?".format(self.USE_SERVER) + parse.urlencode(query, doseq=True)
+        auth_url = "http://{}/auth/email/verify?".format(USE_SERVER) + parse.urlencode(query, doseq=True)
 
         self.title = '스터디 가입 인증 메일입니다.'
         self.body = '이메일 인증 URL 입니다.\n{}\n{}분 안에 링크를 클릭하여 인증하세요.'.format(auth_url, self.EMAIL_TOKEN_EXP)
@@ -377,7 +375,7 @@ class mail_auth():
     # mail 인증 token 인증
     def verify_mail_token(self, token):
         try:
-            jwt.decode(token, self.PUBLIC_KEY, algorithms='RS256')
+            jwt.decode(token, PUBLIC_KEY, algorithms='RS256')
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             return False

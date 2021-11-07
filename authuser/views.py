@@ -39,7 +39,7 @@ class UserLogin(APIView):
             user = User.objects.get(user_id=post_data['user_id'])
         except:
             msg = {'state': 'fail', 'detail': 'invalid account info'}
-            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 패스워드 검증
         # 입력한 패스워드(평문)와 입력한 계정 ID를 넣는다.
@@ -48,7 +48,7 @@ class UserLogin(APIView):
         # 잘못된 패스워드일 때
         if verify_password_result == False:
             msg = {'state': 'fail', 'detail': 'invalid account info'}
-            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = UserSerializer(user)
         payload = {
@@ -254,7 +254,7 @@ class VerifyPassword(APIView):
         # 잘못된 패스워드일 때
         if verify_password_result == False:
             msg = {'state': 'fail', 'detail': 'invalid account info'}
-            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         msg = {'state': 'success', 'detail': 'valid password.'}
         return Response(msg, status=status.HTTP_200_OK)

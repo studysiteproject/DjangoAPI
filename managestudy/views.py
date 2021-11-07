@@ -188,7 +188,7 @@ class UpdateOrDeleteComment(APIView):
             comment_obj = StudyComment.objects.filter(id=comment_id, user_id=user_index, study_id=study_id).get()
         except Exception as e:
             msg = {'state': 'fail', 'detail': 'Please choose the comment you wrote.'}
-            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         # 댓글의 내용 변경 & 저장
         setattr(comment_obj, "comment", post_data['comment'])
@@ -215,7 +215,7 @@ class UpdateOrDeleteComment(APIView):
             comment_obj = StudyComment.objects.filter(id=comment_id, study_id=study_id, user_id=user_index).get()
         except:
             msg = {'state': 'fail', 'detail': 'Please choose the comment you wrote.'}
-            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 유저 삭제 동작
         # comment_obj.delete()
