@@ -283,4 +283,4 @@ class UpdateVisibleComment(APIView):
         comment_obj.save()
 
         msg = {'state': 'success', 'detail': 'visible update successed.'}
-        return Response(msg, status=status.HTTP_200_OK)    
+        return Response(msg, status=status.HTTP_200_OK)
