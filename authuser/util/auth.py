@@ -260,6 +260,8 @@ class input_data_verify():
         self.PW_regex_case4 = '^(?=.*[A-Z])(?=.*[0-9])(?=.*[\~\!\@\#\$\^\*\_\+])[a-zA-Z0-9\~\!\@\#\$\^\*\_\+]{8,}$' # 대문자 + 숫자 + 특수문자
         self.PW_regex_case5 = '^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[\~\!\@\#\$\^\*\_\+])[a-zA-Z0-9\~\!\@\#\$\^\*\_\+]{8,}$' # 대문자 + 소문자 + 숫자 + 특수문자 
 
+        self.isNumber_regex = '^[0-9]+$'
+
     # ID 중복 체크
     def IdDuplicatecheck(self, input_id):
 
@@ -322,6 +324,10 @@ class input_data_verify():
     # JOB 입력 값 규칙 검증
     def verify_user_job(self, input_job):
         return True if input_job in self.JOB_keywords else False
+
+    def isNumber(self, value):
+        if re.compile(self.isNumber_regex).search(value): return True
+        else: return False
 
 class mail_auth():
 

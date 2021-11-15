@@ -4,9 +4,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from .models import User, Applicationlist, UserReport
+from apiserver.util.tools import *
+
+from .models import User, Applicationlist, UserReport, Usertechlist, Technologylist, Userurl
 from manageprofile.models import ProfileImage
-from .serializers import UserSerializer
+from .serializers import UserSerializer, TechnologylistSerializer, ApplicationlistSerializer, UsertechlistSerializer, UserSerializerForResume, UserurlSerializer
 from .util.manage import *
 
 import boto3, json, base64, os
@@ -324,7 +326,6 @@ class UserUpdatePassword(APIView):
             msg = {'status': 'false', 'msg': 'current password and new password are the same.'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
-        # 새로 입력한 패스워드로 사용자의 패스워드를 업데이트 한다.
         try:
             user = User.objects.get(id=user_index)
         except Exception as e:
@@ -377,6 +378,7 @@ class ReportUser(APIView):
     # 사용될 클래스 호출
     auth = jwt_auth()
     manage_user = manage()
+    user_data_verify = input_data_verify()
 
     def post(self, request, *args, **kwargs):
 
@@ -396,9 +398,14 @@ class ReportUser(APIView):
         data = json.loads(request.body)
         post_data = {key: data[key] for key in data.keys() if key in ('study_id', 'reported_id', 'description')}
 
-        study_id = int(post_data['study_id'])
-        reported_id = int(post_data['reported_id'])
+        study_id = post_data['study_id']
+        reported_id = post_data['reported_id']
         description = post_data['description']
+
+        # 만약 숫자가 아닌 입력값이 입력된 경우
+        if not self.user_data_verify.isNumber(study_id) or not self.user_data_verify.isNumber(reported_id):
+            msg = {"status": "false", "detail": "invalid value. check please input value"}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 본인을 신고하는 경우
         if reported_id == user_index:
@@ -406,32 +413,95 @@ class ReportUser(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 신고한 사람과 신고 당한 사람이 같은 스터디에 속하는지 확인
-        try:
-            info = Applicationlist.objects.get(user_id=reported_id, study_id=study_id)
-            info2 = Applicationlist.objects.get(user_id=user_index, study_id=study_id)
-        except Exception as e:
-            print("ERROR NAME : {}".format(e), flush=True)
+        if not isObjectExists(Applicationlist, user_id__in=[user_index, reported_id], study_id=study_id):
             msg = {'state': 'fail', 'detail': 'invalid user. check please user before report'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         # 신고 대상 사용자의 정보 조회
         try:
-            user = User.objects.get(id=reported_id)
+            reporter_user = User.objects.get(id=user_index)
+            reported_user = User.objects.get(id=reported_id)
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
-            msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
+            msg = {'state': 'fail', 'detail': 'invalid user. check please user before report'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         # 1. 신고 대상 사용자 신고 수 1 증가
-        setattr(user, "warning_cnt", int(user.warning_cnt) + 1)
-        user.save()
+        setattr(reported_user, "warning_cnt", int(reported_user.warning_cnt) + 1)
+        reported_user.save()
 
         # 2. 사용자 신고 내역 DB에 신고 내역 추가
         UserReport.objects.create(
-            reporter_id=user_index,
-            reported_id=reported_id,
+            reporter_id=reporter_user,
+            reported_id=reported_user,
             description=description,
         )
 
         msg = {'state': 'success', 'detail': 'Reports have been completed'}
         return Response(msg, status=status.HTTP_201_CREATED)
+
+# 스터디에 참여한 사용자의 이력서 확인(같은 스터디의 팀원들은 모두 확인 가능)
+class UserResumeView(APIView):
+
+    auth = jwt_auth()
+    manage_user = manage()
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+    
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        study_id = request.GET.get('study_id')
+        user_id = request.GET.get('user_id')
+
+        # 만약 숫자가 아닌 입력값이 입력된 경우
+        if not self.user_data_verify.isNumber(study_id) or not self.user_data_verify.isNumber(user_id):
+            msg = {"status": "false", "detail": "invalid value. check please input value"}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            
+        # 팀원의 이력서를 확인하려는 사용자가 현재 스터디의 참여중인 사용자인지 확인한다.
+        if not isObjectExists(Applicationlist, user_id=user_index, study_id=study_id, permission=True):
+            msg = {"status": "false", "detail": "invalid user. check please user before view"}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 1. User Object에서 정보 확인
+        user_obj = User.objects.filter(id=user_id)
+        user_data = OrderedDicttoJson(UserSerializerForResume(user_obj, many=True).data, tolist=False)
+    
+        # 2. Usertechlist Object에서 정보 확인
+        user_tech_id_obj = Usertechlist.objects.filter(user_id=user_id)
+        user_tech_id_data = OrderedDicttoJson(UsertechlistSerializer(user_tech_id_obj, many=True).data, tolist=True)
+
+        # 2번 과정에서 얻은 tech_id를 가진 행을 모두 출력한다.
+        user_tech_info_obj = Technologylist.objects.filter(id__in=[tech_item['tech_id'] for tech_item in user_tech_id_data])
+        user_tech_info_data = OrderedDicttoJson(TechnologylistSerializer(user_tech_info_obj, many=True).data, tolist=True)
+
+        # 3. Userurl Object에서 정보 확인
+        user_url_obj = Userurl.objects.filter(user_id=user_id)
+        user_url_data = OrderedDicttoJson(UserurlSerializer(user_url_obj, many=True).data, tolist=True)
+        user_url_list = [item['url'] for item in user_url_data]
+        
+        # 4. applicationlist Object에서 스터디 참가 신청 시 작성한 내용 확인
+        application_obj = Applicationlist.objects.filter(user_id=user_id, study_id=study_id)
+        application_data = OrderedDicttoJson(ApplicationlistSerializer(application_obj, many=True).data, tolist=False)
+        description_data = application_data['description']
+
+        # 1~4 에서 얻은 내용을 합쳐 반환한다.
+        user_resume_data = ConcatDict(
+            user_data,
+            {"user_url" : user_url_list},
+            {"tech_info" : user_tech_info_data},
+            {"description" : description_data}
+        )
+    
+        return Response(user_resume_data, status=status.HTTP_200_OK)

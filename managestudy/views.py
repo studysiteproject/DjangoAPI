@@ -25,6 +25,7 @@ class CreateOrViewComments(APIView):
     manage_user = manage()
     user_data_verify = input_data_verify()
 
+    # view
     def get(self, request, study_id):
 
         # 스터디 댓글에 대한 데이터를 얻어온다.
@@ -35,7 +36,7 @@ class CreateOrViewComments(APIView):
             
             # comment_visible 값이 false 일 때
             if not comment_item['comment_visible']:
-                comment_item['comment'] = "이 댓글은 비 공개 상태입니다."
+                comment_item['comment'] = "이 댓글은 비공개 상태입니다."
 
             #  comment_state 값이 activate가 아닐 때
             if comment_item['comment_state'] == 'delete':
@@ -45,6 +46,7 @@ class CreateOrViewComments(APIView):
 
         return Response(comment_data, status=status.HTTP_200_OK)
 
+    # create
     def post(self, request, study_id):
 
         # access_token, user_index를 얻어온다.
@@ -71,12 +73,14 @@ class CreateOrViewComments(APIView):
         except TypeError:
             new_group_num = 0
 
+        # 유저 정보
         try:
             user_info = User.objects.get(id=user_index)
         except:
             msg = {'state': 'fail', 'detail': 'user who does not exist. relogin please'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
+        # 스터디 정보
         try:
             study_info = Study.objects.get(id=study_id)
         except:
@@ -289,61 +293,3 @@ class UpdateVisibleComment(APIView):
 
         msg = {'state': 'success', 'detail': 'visible update successed.'}
         return Response(msg, status=status.HTTP_200_OK)
-
-# 스터디에 참여한 사용자의 이력서 확인(같은 스터디의 팀원들은 모두 확인 가능)
-class UserResumeView(APIView):
-
-    auth = jwt_auth()
-    manage_user = manage()
-    user_data_verify = input_data_verify()
-
-    def get(self, request, study_id, user_id):
-    
-        # access_token, user_index를 얻어온다.
-        access_token = request.COOKIES.get('access_token')
-        user_index = request.COOKIES.get('index')
-
-        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
-        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
-        res = self.auth.verify_user(access_token, user_index)
-
-        # 토큰이 유효하지 않을 때
-        if res.status_code != status.HTTP_200_OK:
-            return res
-
-        # 팀원의 이력서를 확인하려는 사용자가 현재 스터디의 참여중인 사용자인지 확인한다.
-        if not isObjectExists(Applicationlist, user_id=user_index, study_id=study_id, permission=True):
-            msg = {"status": "false", "detail": "현재 스터디에 참여한 팀원이 아닙니다."}
-            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
-
-        # 1. User Object에서 정보 확인
-        user_obj = User.objects.filter(id=user_id)
-        user_data = OrderedDicttoJson(UserSerializerForResume(user_obj, many=True).data, tolist=False)
-    
-        # 2. Usertechlist Object에서 정보 확인
-        user_tech_id_obj = Usertechlist.objects.filter(user_id=user_id)
-        user_tech_id_data = OrderedDicttoJson(UsertechlistSerializer(user_tech_id_obj, many=True).data, tolist=True)
-
-        # 2번 과정에서 얻은 tech_id를 가진 행을 모두 출력한다.
-        user_tech_info_obj = Technologylist.objects.filter(id__in=[tech_item['tech_id'] for tech_item in user_tech_id_data])
-        user_tech_info_data = OrderedDicttoJson(TechnologylistSerializer(user_tech_info_obj, many=True).data, tolist=True)
-
-        # 3. Userurl Object에서 정보 확인
-        user_url_obj = Userurl.objects.filter(user_id=user_id)
-        user_url_data = OrderedDicttoJson(UserurlSerializer(user_url_obj, many=True).data, tolist=True)
-        user_url_list = [item['url'] for item in user_url_data]
-        
-        # 4. applicationlist Object에서 스터디 참가 신청 시 작성한 내용 확인
-        application_obj = Applicationlist.objects.filter(user_id=user_id, study_id=study_id)
-        application_data = OrderedDicttoJson(ApplicationlistSerializer(application_obj, many=True).data, tolist=False)
-        description_data = application_data['description']
-
-        # 1~4 에서 얻은 내용을 합쳐 반환한다.
-        user_resume_data = ConcatDict(
-            user_data,
-            {"user_url" : user_url_list},
-            {"tech_id" : user_tech_info_data},
-            {"description" : description_data}
-        )
-    
-        return Response(user_resume_data, status=status.HTTP_200_OK)
