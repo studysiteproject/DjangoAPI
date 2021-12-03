@@ -16,6 +16,67 @@ import boto3, json, base64, os
 # 인증에 사용되는 클래스 (authuser app)
 from authuser.util.auth import *
 
+class TESTAPI(APIView):
+
+    def get(self, request):
+        
+        test_data = [
+            {
+                "id": 1,
+                "title": "스터디 모집합니다.",
+                "user_info": {
+                    "id": 3,
+                    "user_name": "테스트이름",
+                    "img_url": "https://catchstudy-images.s3.ap-northeast-2.amazonaws.com/profile/default.png"              
+                },
+                "tech_info": [
+                    {
+                        "id": 1,
+                        "tech_name": "Spring",
+                        "img_url": "img/icon/tech/spring.svg"
+                    },
+                    {
+                        "id": 2,
+                        "tech_name": "Github",
+                        "img_url": "img/icon/tech/github.svg"
+                    }
+                ],
+                "maxman": 3,
+                "nowman": 1,
+                "warn_cnt": 0,
+                "isfavorite": True,
+                "create_date": "2021-10-13T19:02:48.252"
+            },
+            {
+                "id": 2,
+                "title": "스터디 모집합니다.",
+                "user_info": {
+                    "id": 3,
+                    "user_name": "테스트이름22",
+                    "img_url": "https://catchstudy-images.s3.ap-northeast-2.amazonaws.com/profile/default.png"              
+                },
+                "tech_info": [
+                    {
+                        "id": 1,
+                        "tech_name": "Spring",
+                        "img_url": "img/icon/tech/spring.svg"
+                    },
+                    {
+                        "id": 2,
+                        "tech_name": "Github",
+                        "img_url": "img/icon/tech/github.svg"
+                    }
+                ],
+                "maxman": 3,
+                "nowman": 1,
+                "warn_cnt": 1,
+                "isfavorite": False,
+                "create_date": "2021-10-13T19:02:48.252"
+            }
+        ]
+        
+        return Response(test_data, status=status.HTTP_200_OK)
+
 # Create your views here.
 class UserListView(APIView):
 
