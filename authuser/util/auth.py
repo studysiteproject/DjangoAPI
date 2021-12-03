@@ -137,7 +137,7 @@ class jwt_auth():
         return serializer.data['refresh_token']
 
     # 사용자 인증(로그인이 필요한 페이지에 사용되는 함수로 해당 사용자가 정상적으로 로그인 했는지 확인)
-    # 인증 성공 시, status code 200와 메세지, access token & index 쿠키에 설정(httponly)
+    # 인증 성공 시, status code 200와 메세지, access token & index 쿠키에 설정
     # 인증 실패 시, status code 401와 메세제, 쿠키에 등록된 access token & index 삭제
     def verify_user(self, access_token, user_index):
         
@@ -166,8 +166,8 @@ class jwt_auth():
             res.status_code = status.HTTP_200_OK
 
             # 쿠키 값 설정
-            res.set_cookie('access_token', access_token, httponly=True, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
-            res.set_cookie('index', user_index, httponly=True, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
+            res.set_cookie('access_token', access_token, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
+            res.set_cookie('index', user_index, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
 
             return res
 
@@ -199,8 +199,8 @@ class jwt_auth():
                     res.status_code = status.HTTP_200_OK
 
                     # 쿠키 값 설정
-                    res.set_cookie('access_token', new_access_token, httponly=True, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
-                    res.set_cookie('index', user_index, httponly=True, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
+                    res.set_cookie('access_token', new_access_token, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
+                    res.set_cookie('index', user_index, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
 
                     return res
 
@@ -249,7 +249,7 @@ class input_data_verify():
     def __init__(self):
         self.ID_regex = '^[a-zA-Z0-9-_]{6,20}$'
         self.NAME_regex = '^[a-zA-Z가-힣0-9\_]{3,20}$'
-        self.Email_regex = '^[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-]+(?:.[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-\]\+])*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$'
+        self.Email_regex = '^[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-]+(?:.[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-\]\+])*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+[\.]{1}[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$'
         self.URL_regex = '^(http(s)?:\/\/)[a-zA-Z0-9가-힣\!\*\'\(\)\;\:\@\&\=\+\$\,\/\?\#\[\]\%\-\_\.\~]+\.[a-zA-Z0-9가-힣\!\*\'\(\)\;\:\@\&\=\+\$\,\/\?\#\[\]\%\-\_\.\~]+$'
         self.JOB_keywords = ['student', 'university', 'job-seeker', 'salaryman']
 

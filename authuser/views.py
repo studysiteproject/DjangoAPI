@@ -69,8 +69,8 @@ class UserLogin(APIView):
         res = Response(msg, status=status.HTTP_200_OK)
 
         # 쿠키 값 설정
-        res.set_cookie('access_token', access_token, httponly=True, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
-        res.set_cookie('index', user_index, httponly=True, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
+        res.set_cookie('access_token', access_token, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
+        res.set_cookie('index', user_index, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
 
         return res
 
@@ -125,9 +125,71 @@ class IdDuplicatecheck(APIView):
             msg = {'available': True, 'detail': 'can use this id'}
             return Response(msg, status=status.HTTP_200_OK)
 
-        # 현재 사용하는 ID 일 때 (가입 시 사용 가능한 ID)
+        # 현재 사용하는 ID 일 때 (가입 시 사용 불가능한 ID)
         else:
             msg = {'available': False, 'detail': 'ID is already in use'}
+            return Response(msg, status=status.HTTP_200_OK)
+
+class EmailDuplicatecheck(APIView):
+
+    input_verify = input_data_verify()
+
+    def get(self, request):
+        
+        input_email = request.GET.get('user_email')
+
+        # user_email 필드 미 입력 시
+        if not input_email:
+            msg = {'available': False, 'detail': 'input user_email'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Email 입력 값 규칙 확인
+        if self.input_verify.verify_user_email(input_email) == False:
+            msg = {'state': 'fail', 'detail': 'user_email is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 입력받은 Email(user_email 필드)를 사용하여 중복 체크 후 결과 반환
+        result = self.input_verify.EmailDuplicatecheck(input_email)
+        
+        # 현재 사용하지 않는 Email일 때 (가입 시 사용 가능한 Email)
+        if result:
+            msg = {'available': True, 'detail': 'can use this email'}
+            return Response(msg, status=status.HTTP_200_OK)
+
+        # 현재 사용하는 Email 일 때 (가입 시 사용 불가능한 Email)
+        else:
+            msg = {'available': False, 'detail': 'ID is already in use'}
+            return Response(msg, status=status.HTTP_200_OK)
+
+class NameDuplicatecheck(APIView):
+
+    input_verify = input_data_verify()
+
+    def get(self, request):
+        
+        input_name = request.GET.get('user_name')
+
+        # user_name 필드 미 입력 시
+        if not input_name:
+            msg = {'available': False, 'detail': 'input user_name'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Name 입력 값 규칙 확인
+        if self.input_verify.verify_user_name(input_name) == False:
+            msg = {'state': 'fail', 'detail': 'user_name is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 입력받은 Name(user_name 필드)를 사용하여 중복 체크 후 결과 반환
+        result = self.input_verify.NameDuplicatecheck(input_name)
+        
+        # 현재 사용하지 않는 Name일 때 (가입 시 사용 가능한 Name)
+        if result:
+            msg = {'available': True, 'detail': 'can use this name'}
+            return Response(msg, status=status.HTTP_200_OK)
+
+        # 현재 사용하는 Name 일 때 (가입 시 사용 가능한 Name)
+        else:
+            msg = {'available': False, 'detail': 'name is already in use'}
             return Response(msg, status=status.HTTP_200_OK)
 
 class TokenAuth(APIView):
