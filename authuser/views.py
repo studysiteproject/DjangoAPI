@@ -55,6 +55,28 @@ class UserLogin(APIView):
             'user_id': serializer.data['user_id'],
             'user_index' : serializer.data['id']
             }
+        
+
+        if serializer.data['account_state'] != 'active':
+            
+            # 비활성화 상태(회원가입 후, 이메일 인증 X)
+            if serializer.data['account_state'] == 'inactive':
+                msg = {'state': 'fail', 'detail': 'This Account state is inactive. please check auth email.', 'account': 'inactive'}
+                return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+
+            # 신고 등으로 인한 정지 상태, 관리자에게 문의해야한다.
+            elif serializer.data['account_state'] == 'block':
+                msg = {'state': 'fail', 'detail': 'This Account state is block. Please contact the manager.', 'account': 'block'}
+                return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+
+            # 장기간 미 사용으로 휴면 상태로 전환된 상태, 이메일 인증을 다시 받아야한다.
+            elif serializer.data['account_state'] == 'sleep':
+                msg = {'state': 'fail', 'detail': 'This Account state is sleep. please check auth email.', 'account': 'sleep'}
+                return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+
+            else:
+                msg = {'state': 'fail', 'detail': 'Can\'t verify this account. please contact the Admin.', 'account': 'error'}
+                return Response(msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # JWT 토큰 생성
         access_token = self.auth.create_token(payload)
