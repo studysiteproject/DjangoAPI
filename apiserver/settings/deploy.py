@@ -25,7 +25,8 @@ ALLOWED_HOSTS = ['*']
 COOKIE_DOMAIN = 'catchstudys.com'
 COOKIE_SECURE = True
 
-USE_SERVER = "api.catchstudys.com"
+USE_SERVER = "https://api.catchstudys.com"
+FRONTEND_SERVER = "https://www.catchstudys.com"
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_WHITELIST = [

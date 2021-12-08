@@ -287,15 +287,15 @@ class VerifyAuthEmail(APIView):
         account_state = serializer.data['account_state']
 
         if account_state == 'active':
-            msg = {'state': 'fail', 'detail': 'this account is already active account.'}
+            msg = {'state': 'fail', 'detail': 'this account is already active account.', 'account': 'active'}
             return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
         elif account_state == 'block':
-            msg = {'state': 'fail', 'detail': 'this account is block account. unblock account first.'}
+            msg = {'state': 'fail', 'detail': 'this account is block account. unblock account first.', 'account': 'block'}
             return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
         elif account_state == 'sleep':
-            msg = {'state': 'fail', 'detail': 'this account is sleep account. unsleep account first using login and auth.'}
+            msg = {'state': 'fail', 'detail': 'this account is sleep account. unsleep account first using login and auth.', 'account': 'sleep'}
             return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
         setattr(user, 'account_state', 'active')

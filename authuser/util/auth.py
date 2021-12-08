@@ -8,6 +8,7 @@ from urllib import parse
 
 from rest_framework.response import Response
 from rest_framework import status
+from apiserver.settings.deploy import FRONTEND_SERVER
 from authuser.models import Refresh
 from authuser.serializers import RefreshSerializer
 
@@ -22,6 +23,7 @@ PUBLIC_KEY = getattr(settings, 'PUBLIC_KEY', None)
 COOKIE_DOMAIN = getattr(settings, 'COOKIE_DOMAIN', None)
 COOKIE_SECURE = getattr(settings, 'COOKIE_SECURE', None)
 USE_SERVER = getattr(settings, 'USE_SERVER', None)
+FRONTEND_SERVER = getattr(settings, 'FRONTEND_SERVER', None)
 
 class jwt_auth():
 
@@ -347,9 +349,10 @@ class mail_auth():
         payload = {'auth_mail': send_to_email}
         mail_auth_token = self.create_mail_token(payload)
 
-        query = {'user_mail_auth_token': mail_auth_token}
+        # query = {'user_mail_auth_token': mail_auth_token}
 
-        auth_url = "http://{}/auth/email/verify?".format(USE_SERVER) + parse.urlencode(query, doseq=True)
+        # auth_url = "{}/auth/email/verify?".format(USE_SERVER) + parse.urlencode(query, doseq=True)
+        auth_url = "{}/auth/email/{}".format(FRONTEND_SERVER, mail_auth_token)
 
         self.title = '스터디 가입 인증 메일입니다.'
         self.body = '이메일 인증 URL 입니다.\n{}\n{}분 안에 링크를 클릭하여 인증하세요.'.format(auth_url, self.EMAIL_TOKEN_EXP)
