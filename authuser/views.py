@@ -180,7 +180,7 @@ class EmailDuplicatecheck(APIView):
 
         # 현재 사용하는 Email 일 때 (가입 시 사용 불가능한 Email)
         else:
-            msg = {'available': False, 'detail': 'ID is already in use'}
+            msg = {'available': False, 'detail': 'Email is already in use'}
             return Response(msg, status=status.HTTP_200_OK)
 
 class NameDuplicatecheck(APIView):
