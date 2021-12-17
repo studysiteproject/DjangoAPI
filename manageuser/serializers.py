@@ -1,7 +1,7 @@
 from django.db.models import fields
 from rest_framework import serializers
 
-from .models import User, Applicationlist, Usertechlist, Userurl
+from .models import User, Applicationlist, UserFavorite, Usertechlist, Userurl
 from .models import Technologylist
 
 class UserSerializer(serializers.ModelSerializer):
@@ -38,3 +38,8 @@ class UserurlSerializer(serializers.ModelSerializer):
     class Meta:
         model = Userurl
         fields = ['url']
+
+class UserFavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserFavorite
+        exclude = ['create_date']

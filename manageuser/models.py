@@ -66,3 +66,13 @@ class Userurl(models.Model):
         managed = False
         db_table = 'user_url'
         unique_together = (('user_id', 'url'),)
+
+class UserFavorite(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user_id", primary_key=True)
+    study_id = models.ForeignKey('managestudy.Study', on_delete=models.CASCADE, db_column="study_id", unique=True)
+    create_date = models.DateTimeField(auto_now_add=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'user_favorite'
+        unique_together = (('user_id', 'study_id'),)

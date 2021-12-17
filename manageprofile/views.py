@@ -4,8 +4,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
+from apiserver.util.tools import OrderedDicttoJson, isObjectExists
+from managestudy.models import Study
+from manageuser.serializers import TechnologylistSerializer, UserFavoriteSerializer, UsertechlistSerializer, UserurlSerializer
+
 from .models import ProfileImage
-from manageuser.models import User, Applicationlist, UserReport
+from manageuser.models import Technologylist, User, Applicationlist, UserReport, Userurl, Usertechlist, UserFavorite
 from manageuser.util.manage import *
 from authuser.util.auth import *
 
@@ -70,3 +74,411 @@ class UploadImage(APIView):
 
         msg = {"state": "success", "message": "profile image upload successed."}
         return Response(msg, status=status.HTTP_200_OK)
+
+class ViewUrlList(APIView):
+
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        user_id = request.GET.get('user_id')
+        
+        # user_id 필드 미 입력 시
+        if not user_id:
+            msg = {'available': False, 'detail': 'input user_id'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 만약 숫자가 아닌 입력값이 입력된 경우
+        if not self.user_data_verify.isNumber(user_id):
+            msg = {"status": "false", "detail": "invalid value. check please input value"}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 존재하는 사용자인지 확인한다.
+        if not isObjectExists(User, id=user_id):
+            msg = {"status": "false", "detail": "invalid user. check please user before view"}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # Userurl Object에서 정보 확인
+        user_url_obj = Userurl.objects.filter(user_id=user_id)
+        user_url_data = OrderedDicttoJson(UserurlSerializer(user_url_obj, many=True).data, tolist=True)
+        user_url_list = [item['url'] for item in user_url_data]
+
+        return Response(user_url_list, status=status.HTTP_200_OK)
+
+class AddUrl(APIView):
+
+    auth = jwt_auth()
+    manage_user = manage()
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        input_url = request.GET.get('input_url')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        # input_url 필드 미 입력 시
+        if not input_url:
+            msg = {'available': False, 'detail': 'input input_url'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # Url 입력 값 규칙 확인
+        if self.user_data_verify.verify_user_url(input_url) == False:
+            msg = {'state': 'fail', 'detail': 'input_url is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 이미 존재하는 URL인지 확인
+        if isObjectExists(Userurl, user_id=user_index, url=input_url):
+            msg = {'state': 'fail', 'detail': 'input_url is already in use'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 사용자 오브젝트를 얻어온다.
+        user_obj = User.objects.get(id=user_index)
+
+        Userurl.objects.create(
+            user_id = user_obj,
+            url = input_url
+        )
+
+        msg = {'state': 'success', 'detail': 'url add successed'}
+        return Response(msg, status=status.HTTP_201_CREATED)
+
+class DeleteUrl(APIView):
+
+    auth = jwt_auth()
+    manage_user = manage()
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        input_url = request.GET.get('input_url')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        # input_url 필드 미 입력 시
+        if not input_url:
+            msg = {'available': False, 'detail': 'input input_url'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # Url 입력 값 규칙 확인
+        if self.user_data_verify.verify_user_url(input_url) == False:
+            msg = {'state': 'fail', 'detail': 'input_url is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 존재하는 URL인지 확인
+        if not isObjectExists(Userurl, user_id=user_index, url=input_url):
+            msg = {'state': 'fail', 'detail': 'invalid url. check url please'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 삭제를 위해 해당 url의 오브젝트를 얻어온다.
+        url_object = Userurl.objects.filter(user_id=user_index, url=input_url)
+
+        # URL 삭제 동작
+        try:
+            url_object.delete()
+            msg = {'state': 'success', 'detail': 'url delete successed'}
+            return Response(msg, status=status.HTTP_200_OK)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            msg = {'state': 'fail', 'detail': 'url delete failed'}
+            return Response(msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ViewTechList(APIView):
+
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        user_id = request.GET.get('user_id')
+
+        # user_id 필드 미 입력 시
+        if not user_id:
+            msg = {'available': False, 'detail': 'input user_id'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        
+        # 만약 숫자가 아닌 입력값이 입력된 경우
+        if not self.user_data_verify.isNumber(user_id):
+            msg = {"status": "false", "detail": "invalid value. check please input value"}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 존재하는 사용자인지 확인한다.
+        if not isObjectExists(User, id=user_id):
+            msg = {"status": "false", "detail": "invalid user. check please user before view"}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # Usertechlist Object에서 정보 확인
+        user_tech_id_obj = Usertechlist.objects.filter(user_id=user_id)
+        user_tech_id_data = OrderedDicttoJson(UsertechlistSerializer(user_tech_id_obj, many=True).data, tolist=True)
+
+        # 위 과정에서 얻은 tech_id를 가진 행을 모두 출력한다.
+        user_tech_info_obj = Technologylist.objects.filter(id__in=[tech_item['tech_id'] for tech_item in user_tech_id_data])
+        user_tech_info_data = OrderedDicttoJson(TechnologylistSerializer(user_tech_info_obj, many=True).data, tolist=True)
+
+        return Response(user_tech_info_data, status=status.HTTP_200_OK)
+
+class AddTech(APIView):
+
+    auth = jwt_auth()
+    manage_user = manage()
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        tech_id = request.GET.get('tech_id')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        # tech_id 필드 미 입력 시
+        if not tech_id:
+            msg = {'available': False, 'detail': 'input tech_id'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # tech_id 입력 값 규칙 확인
+        if self.user_data_verify.isNumber(tech_id) == False:
+            msg = {'state': 'fail', 'detail': 'tech_id is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 존재하지 않는 기술을 추가하는지 확인
+        if isObjectExists(Technologylist, id=tech_id) == False:
+            msg = {'state': 'fail', 'detail': 'invalid tech. check tech_id please'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 이미 기술 스택에 추가한 기술인지 확인
+        if isObjectExists(Usertechlist, user_id=user_index, tech_id=tech_id):
+            msg = {'state': 'fail', 'detail': 'this tech is already in your tech list'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 사용자와 기술의 오브젝트를 얻어온다.
+        user_obj = User.objects.get(id=user_index)
+        tech_obj = Technologylist.objects.get(id=tech_id)
+
+        # 사용자 기술스택에 추가한다.
+        Usertechlist.objects.create(
+            user_id = user_obj,
+            tech_id = tech_obj
+        )
+
+        msg = {'state': 'success', 'detail': 'tech add successed'}
+        return Response(msg, status=status.HTTP_201_CREATED)
+
+class DeleteTech(APIView):
+
+    auth = jwt_auth()
+    manage_user = manage()
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        tech_id = request.GET.get('tech_id')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        # tech_id 필드 미 입력 시
+        if not tech_id:
+            msg = {'available': False, 'detail': 'input tech_id'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # tech_id 입력 값 규칙 확인
+        if self.user_data_verify.isNumber(tech_id) == False:
+            msg = {'state': 'fail', 'detail': 'tech_id is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 존재하지 않는 기술을 삭제하는지 확인
+        if isObjectExists(Technologylist, id=tech_id) == False:
+            msg = {'state': 'fail', 'detail': 'invalid tech. check tech_id please'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 기술 스택에 추가한 기술이 아닌지 확인
+        if isObjectExists(Usertechlist, user_id=user_index, tech_id=tech_id) == False:
+            msg = {'state': 'fail', 'detail': 'invalid tech. check tech_id please'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 삭제를 위해 해당 tech의 오브젝트를 얻어온다.
+        tech_object = Usertechlist.objects.filter(user_id=user_index, tech_id=tech_id)
+
+        # Tech 삭제 동작
+        try:
+            tech_object.delete()
+            msg = {'state': 'success', 'detail': 'tech delete successed'}
+            return Response(msg, status=status.HTTP_200_OK)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            msg = {'state': 'fail', 'detail': 'tech delete failed'}
+            return Response(msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ViewFavoriteList(APIView):
+
+    auth = jwt_auth()
+    manage_user = manage()
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        # Userurl Object에서 정보 확인
+        user_favorite_obj = UserFavorite.objects.filter(user_id=user_index)
+        user_favorite_data = OrderedDicttoJson(UserFavoriteSerializer(user_favorite_obj, many=True).data, tolist=True)
+        user_favorite_list = [item['study_id'] for item in user_favorite_data]
+
+        return Response(user_favorite_list, status=status.HTTP_200_OK)
+
+class AddFavorite(APIView):
+
+    auth = jwt_auth()
+    manage_user = manage()
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        study_id = request.GET.get('study_id')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        # study_id 필드 미 입력 시
+        if not study_id:
+            msg = {'available': False, 'detail': 'input study_id'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # study_id 입력 값 규칙 확인
+        if self.user_data_verify.isNumber(study_id) == False:
+            msg = {'state': 'fail', 'detail': 'study_id is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 존재하지 않는 스터디를 추가하는지 확인
+        if isObjectExists(Study, id=study_id) == False:
+            msg = {'state': 'fail', 'detail': 'invalid study. check study_id please'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 이미 즐겨찾기에 추가한 스터디인지 확인
+        if isObjectExists(UserFavorite, user_id=user_index, study_id=study_id):
+            msg = {'state': 'fail', 'detail': 'this study is already in your favorite list'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 사용자와 스터디의 오브젝트를 얻어온다.
+        user_obj = User.objects.get(id=user_index)
+        study_obj = Study.objects.get(id=study_id)
+
+        # 사용자의 즐겨찾기 스터디 목록에 추가한다.
+        UserFavorite.objects.create(
+            user_id = user_obj,
+            study_id = study_obj
+        )
+
+        msg = {'state': 'success', 'detail': 'favorite study add successed'}
+        return Response(msg, status=status.HTTP_201_CREATED)
+
+class DeleteFavorite(APIView):
+
+    auth = jwt_auth()
+    manage_user = manage()
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
+
+        study_id = request.GET.get('study_id')
+
+        # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+        # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+        res = self.auth.verify_user(access_token, user_index)
+
+        # 토큰이 유효하지 않을 때
+        if res.status_code != status.HTTP_200_OK:
+            return res
+
+        # study_id 필드 미 입력 시
+        if not study_id:
+            msg = {'available': False, 'detail': 'input study_id'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # study_id 입력 값 규칙 확인
+        if self.user_data_verify.isNumber(study_id) == False:
+            msg = {'state': 'fail', 'detail': 'study_id is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 존재하지 않는 스터디를 삭제하는지 확인
+        if isObjectExists(Study, id=study_id) == False:
+            msg = {'state': 'fail', 'detail': 'invalid study. check study_id please'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 사용자의 즐겨찾기에 추가한 스터디가 아닌지 확인
+        if isObjectExists(UserFavorite, user_id=user_index, study_id=study_id) == False:
+            msg = {'state': 'fail', 'detail': 'invalid study. check study_id please'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 삭제를 위해 해당 즐겨찾기의 오브젝트를 얻어온다.
+        favorite_object = UserFavorite.objects.filter(user_id=user_index, study_id=study_id)
+
+        # Tech 삭제 동작
+        try:
+            favorite_object.delete()
+            msg = {'state': 'success', 'detail': 'favorite study delete successed'}
+            return Response(msg, status=status.HTTP_200_OK)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+            msg = {'state': 'fail', 'detail': 'favorite study delete failed'}
+            return Response(msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
