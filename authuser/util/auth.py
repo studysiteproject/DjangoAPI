@@ -149,7 +149,7 @@ class jwt_auth():
         payload = self.get_payload(access_token)
 
         # access_token 변조 시 또는 user_index 쿠키 값 변조 시 로그아웃
-        if payload == False or int(user_index) != payload['user_index']:
+        if payload == False or (user_index != payload['user_index']):
 
             # 토큰 삭제
             res.delete_cookie('access_token')
