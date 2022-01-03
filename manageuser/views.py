@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from apiserver.util.tools import *
+from authuser.views import SendAuthEmail
 
 from .models import User, Applicationlist, UserReport, Usertechlist, Technologylist, Userurl
 from manageprofile.models import ProfileImage
@@ -290,8 +291,14 @@ class UserUpdateView(APIView):
             print("ERROR NAME : {}".format(e), flush=True)
             msg = {'state': 'fail', 'detail': 'invalid account. relogin please'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
-        
+
         for key, value in post_data.items():
+            
+            # 만약에 이메일이 변경되었을 경우
+            # 새롭게 인증을 하기 위해 임시로 계정을 휴면 상태로 변경해준다
+            if key == "user_email":
+                setattr(user, "account_state", "inactive")
+
             setattr(user, key, value)
         
         user.save()
@@ -557,12 +564,17 @@ class UserResumeView(APIView):
         application_data = OrderedDicttoJson(ApplicationlistSerializer(application_obj, many=True).data, tolist=False)
         description_data = application_data['description']
 
+        # 프로필 사진의 경로를 확인하기 위해 Profile의 이미지 주소가 저장된 모델을 확인
+        user_profile_obj = ProfileImage.objects.filter(user_id=user_index).first()
+        user_profile_url_data = getattr(user_profile_obj, "img_url")
+
         # 1~4 에서 얻은 내용을 합쳐 반환한다.
         user_resume_data = ConcatDict(
             user_data,
             {"user_url" : user_url_list},
             {"tech_info" : user_tech_info_data},
-            {"description" : description_data}
+            {"description" : description_data},
+            {"profile" : user_profile_url_data}
         )
     
         return Response(user_resume_data, status=status.HTTP_200_OK)

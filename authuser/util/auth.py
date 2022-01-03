@@ -252,7 +252,8 @@ class input_data_verify():
         self.ID_regex = '^[a-zA-Z0-9-_]{6,20}$'
         self.NAME_regex = '^[a-zA-Z가-힣0-9\_]{3,20}$'
         self.Email_regex = '^[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-]+(?:.[a-z0-9\!\#\$\%\&\'\*\+\/\=\?\^\_\`\{\|\}\~\-\]\+])*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+[\.]{1}[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$'
-        self.URL_regex = '^(http(s)?:\/\/)[a-zA-Z0-9가-힣\!\*\'\(\)\;\:\@\&\=\+\$\,\/\?\#\[\]\%\-\_\.\~]+\.[a-zA-Z0-9가-힣\!\*\'\(\)\;\:\@\&\=\+\$\,\/\?\#\[\]\%\-\_\.\~]+$'
+        # self.URL_regex = '^(http(s)?:\/\/)[a-zA-Z0-9가-힣\!\*\'\(\)\;\:\@\&\=\+\$\,\/\?\#\[\]\%\-\_\.\~]+\.[a-zA-Z0-9가-힣\!\*\'\(\)\;\:\@\&\=\+\$\,\/\?\#\[\]\%\-\_\.\~]+$'
+        self.URL_regex = '^(((http(s?))\:\/\/)?)([0-9a-zA-Z\-]+\.)+[a-zA-Z]{2,6}(\:[0-9]+)?(\/\S*)?'
         self.JOB_keywords = ['student', 'university', 'job-seeker', 'salaryman']
 
         # 패스워드는 8자리 이상
@@ -354,7 +355,7 @@ class mail_auth():
         # auth_url = "{}/auth/email/verify?".format(USE_SERVER) + parse.urlencode(query, doseq=True)
         auth_url = "{}/auth/email/{}".format(FRONTEND_SERVER, mail_auth_token)
 
-        self.title = '스터디 가입 인증 메일입니다.'
+        self.title = 'CatchStudys 회원 인증 메일입니다.'
         self.body = '이메일 인증 URL 입니다.\n{}\n{}분 안에 링크를 클릭하여 인증하세요.'.format(auth_url, self.EMAIL_TOKEN_EXP)
 
         self.email.subject=self.title
