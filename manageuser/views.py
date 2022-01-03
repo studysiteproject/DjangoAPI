@@ -34,12 +34,14 @@ class TESTAPI(APIView):
                     {
                         "id": 1,
                         "tech_name": "Spring",
-                        "img_url": "img/icon/tech/spring.svg"
+                        "category": "dev",
+                        "img_url": "spring.svg"
                     },
                     {
                         "id": 2,
                         "tech_name": "Github",
-                        "img_url": "img/icon/tech/github.svg"
+                        "category": "collaboration",
+                        "img_url": "github.svg"
                     }
                 ],
                 "maxman": 3,
@@ -60,12 +62,14 @@ class TESTAPI(APIView):
                     {
                         "id": 1,
                         "tech_name": "Spring",
-                        "img_url": "img/icon/tech/spring.svg"
+                        "category": "dev",
+                        "img_url": "spring.svg"
                     },
                     {
                         "id": 2,
                         "tech_name": "Github",
-                        "img_url": "img/icon/tech/github.svg"
+                        "category": "collaboration",
+                        "img_url": "github.svg"
                     }
                 ],
                 "maxman": 3,
