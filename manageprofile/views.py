@@ -2,7 +2,7 @@ from django.db.models.indexes import Index
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import status
+from rest_framework import serializers, status
 
 from apiserver.util.tools import OrderedDicttoJson, isObjectExists
 from managestudy.models import Study
@@ -420,7 +420,8 @@ class ViewFavoriteList(APIView):
 
         # Userurl Object에서 정보 확인
         user_favorite_obj = UserFavorite.objects.filter(user_id=user_index)
-        user_favorite_data = OrderedDicttoJson(UserFavoriteSerializer(user_favorite_obj, many=True).data, tolist=True)
+        favorite_serializers = UserFavoriteSerializer(user_favorite_obj, many=True)
+        user_favorite_data = OrderedDicttoJson(favorite_serializers.data, tolist=True)
         user_favorite_list = [item['study_id'] for item in user_favorite_data]
 
         return Response(user_favorite_list, status=status.HTTP_200_OK)

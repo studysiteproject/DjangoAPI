@@ -30,6 +30,7 @@ class TESTAPI(APIView):
                     "user_name": "테스트이름",
                     "img_url": "https://catchstudy-images.s3.ap-northeast-2.amazonaws.com/profile/default.png"              
                 },
+                "category" : "develop",
                 "tech_info": [
                     {
                         "id": 1,
@@ -58,6 +59,7 @@ class TESTAPI(APIView):
                     "user_name": "테스트이름22",
                     "img_url": "https://catchstudy-images.s3.ap-northeast-2.amazonaws.com/profile/default.png"              
                 },
+                "category" : "develop",
                 "tech_info": [
                     {
                         "id": 1,
