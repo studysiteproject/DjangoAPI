@@ -47,7 +47,7 @@ class UploadImage(APIView):
         filename = os.path.splitext(file.name) 
 
         # 만약 이미지 형태의 파일 확장자가 아닐 경우 필터링
-        if filename[-1] not in [".png", ".jpg"]:
+        if (filename[-1]).lower() not in [".png", ".jpg"]:
             msg = {"state": "fail", "message": "invaild file name. check file name please."}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
