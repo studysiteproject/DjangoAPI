@@ -12,6 +12,7 @@ class Study(models.Model):
     description = models.TextField()
     place = models.TextField()
     warn_cnt = models.IntegerField(default=0, null=True)
+    isactive = models.BooleanField(default=True, null=True)
 
     class Meta:
         managed = False
