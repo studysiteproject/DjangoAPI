@@ -548,7 +548,7 @@ class UserResumeView(APIView):
         #     msg = {"status": "false", "detail": "invalid user. check please user before view"}
         #     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
-        if not isObjectExists(User, id=user_index):
+        if not isObjectExists(User, id=user_id):
             msg = {"status": "false", "detail": "invalid user. check please user before view"}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
@@ -575,7 +575,7 @@ class UserResumeView(APIView):
         description_data = application_data['description']
 
         # 프로필 사진의 경로를 확인하기 위해 Profile의 이미지 주소가 저장된 모델을 확인
-        user_profile_obj = ProfileImage.objects.filter(user_id=user_index).first()
+        user_profile_obj = ProfileImage.objects.filter(user_id=user_id).first()
         user_profile_url_data = getattr(user_profile_obj, "img_url")
 
         # 1~4 에서 얻은 내용을 합쳐 반환한다.
