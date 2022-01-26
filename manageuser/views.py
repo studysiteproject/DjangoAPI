@@ -341,9 +341,15 @@ class UserDeleteView(APIView):
 
         # 유저 삭제 동작
         try:
+            # 로그아웃(쿠키 삭제) 처리
             user.delete()
             msg = {'state': 'success', 'detail': 'account delete successed'}
-            return Response(msg, status=status.HTTP_200_OK)
+                        
+            res.delete_cookie('access_token')
+            res.delete_cookie('index')
+            res.data = msg
+            
+            return res
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             msg = {'state': 'fail', 'detail': 'account delete failed'}
