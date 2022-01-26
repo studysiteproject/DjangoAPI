@@ -544,7 +544,11 @@ class UserResumeView(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
             
         # 팀원의 이력서를 확인하려는 사용자가 현재 스터디의 참여중인 사용자인지 확인한다.
-        if not isObjectExists(Applicationlist, user_id=user_index, study_id=study_id, permission=True):
+        # if not isObjectExists(Applicationlist, user_id=user_index, study_id=study_id, permission=True):
+        #     msg = {"status": "false", "detail": "invalid user. check please user before view"}
+        #     return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        if not isObjectExists(User, id=user_index):
             msg = {"status": "false", "detail": "invalid user. check please user before view"}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
