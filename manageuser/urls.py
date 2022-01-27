@@ -11,5 +11,6 @@ urlpatterns = [
     path('authpage', AuthPage.as_view()),
     path('report', ReportUser.as_view()),
     path('resume', UserResumeView.as_view()),
+    path('profile', UserProfileView.as_view()),
     path('testapi', TESTAPI.as_view()),
 ]

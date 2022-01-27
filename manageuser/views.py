@@ -549,7 +549,7 @@ class UserResumeView(APIView):
             msg = {"status": "false", "detail": "invalid value. check please input value"}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
             
-        # 팀원의 이력서를 확인하려는 사용자가 현재 스터디의 참여중인 사용자인지 확인한다.
+        # 팀원의 이력서를 확인하려는 사용자가 현재 존재하는 사용자인지 확인한다.
         if not isObjectExists(User, id=user_id):
             msg = {"status": "false", "detail": "invalid user. check please user before view"}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
@@ -586,6 +586,57 @@ class UserResumeView(APIView):
             {"user_url" : user_url_list},
             {"tech_info" : user_tech_info_data},
             {"description" : description_data},
+            {"profile" : user_profile_url_data}
+        )
+    
+        return Response(user_resume_data, status=status.HTTP_200_OK)
+
+class UserProfileView(APIView):
+
+    auth = jwt_auth()
+    manage_user = manage()
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        user_id = request.GET.get('user_id')
+
+        # 만약 숫자가 아닌 입력값이 입력된 경우
+        if not self.user_data_verify.isNumber(user_id):
+            msg = {"status": "false", "detail": "invalid value. check please input value"}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+            
+        # 팀원의 이력서를 확인하려는 사용자가 현재 존재하는 사용자인지 확인한다.
+        if not isObjectExists(User, id=user_id):
+            msg = {"status": "false", "detail": "invalid user. check please user before view"}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 1. User Object에서 정보 확인
+        user_obj = User.objects.filter(id=user_id)
+        user_data = OrderedDicttoJson(UserSerializerForResume(user_obj, many=True).data, tolist=False)
+    
+        # 2. Usertechlist Object에서 정보 확인
+        user_tech_id_obj = Usertechlist.objects.filter(user_id=user_id)
+        user_tech_id_data = OrderedDicttoJson(UsertechlistSerializer(user_tech_id_obj, many=True).data, tolist=True)
+
+        # 2번 과정에서 얻은 tech_id를 가진 행을 모두 출력한다.
+        user_tech_info_obj = Technologylist.objects.filter(id__in=[tech_item['tech_id'] for tech_item in user_tech_id_data])
+        user_tech_info_data = OrderedDicttoJson(TechnologylistSerializer(user_tech_info_obj, many=True).data, tolist=True)
+
+        # 3. Userurl Object에서 정보 확인
+        user_url_obj = Userurl.objects.filter(user_id=user_id)
+        user_url_data = OrderedDicttoJson(UserurlSerializer(user_url_obj, many=True).data, tolist=True)
+        user_url_list = [item['url'] for item in user_url_data]
+        
+        # 프로필 사진의 경로를 확인하기 위해 Profile의 이미지 주소가 저장된 모델을 확인
+        user_profile_obj = ProfileImage.objects.filter(user_id=user_id).first()
+        user_profile_url_data = getattr(user_profile_obj, "img_url")
+
+        # 1~4 에서 얻은 내용을 합쳐 반환한다.
+        user_resume_data = ConcatDict(
+            user_data,
+            {"user_url" : user_url_list},
+            {"tech_info" : user_tech_info_data},
             {"profile" : user_profile_url_data}
         )
     

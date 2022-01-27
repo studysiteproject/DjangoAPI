@@ -10,9 +10,12 @@ def isObjectExists(model, **kwargs):
 def OrderedDicttoJson(dic, tolist=False):
 
     json_data = json.loads(json.dumps(dic, indent=4))
-
-    # tolist에 따라 다른 데이터 형식으로 반환
-    return json_data if tolist else json_data.pop()
+    
+    if len(json_data) > 0:
+        # tolist에 따라 다른 데이터 형식으로 반환
+        return json_data if tolist else json_data.pop()
+    else:
+        return []
 
 def ConcatDict(*dicts):
 
