@@ -330,7 +330,7 @@ class input_data_verify():
         return True if input_job in self.JOB_keywords else False
 
     def isNumber(self, value):
-        if re.compile(self.isNumber_regex).search(value): return True
+        if re.compile(self.isNumber_regex).search(str(value)): return True
         else: return False
 
 class mail_auth():

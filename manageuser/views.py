@@ -1,3 +1,4 @@
+from pickle import TRUE
 from django.db.models.indexes import Index
 from django.shortcuts import render
 from rest_framework.response import Response
@@ -520,7 +521,7 @@ class ReportUser(APIView):
         msg = {'state': 'success', 'detail': 'Reports have been completed'}
         return Response(msg, status=status.HTTP_201_CREATED)
 
-# 스터디에 참여한 사용자의 이력서 확인(같은 스터디의 팀원들은 모두 확인 가능)
+# 스터디에 참여한 사용자의 이력서 확인(같은 스터디의 신청자, 팀원들은 모두 확인 가능)
 class UserResumeView(APIView):
 
     auth = jwt_auth()
@@ -591,6 +592,7 @@ class UserResumeView(APIView):
     
         return Response(user_resume_data, status=status.HTTP_200_OK)
 
+# 특정 유저의 프로필의 정보를 확인할 수 있는 기능
 class UserProfileView(APIView):
 
     auth = jwt_auth()

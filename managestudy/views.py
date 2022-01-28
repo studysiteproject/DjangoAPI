@@ -5,6 +5,7 @@ from django.utils import tree
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import serializers, status
+from manageprofile.models import ProfileImage
 from manageuser.models import Applicationlist, Usertechlist, Technologylist, Userurl
 
 from apiserver.util.tools import *
@@ -28,23 +29,65 @@ class CreateOrViewComments(APIView):
     # view
     def get(self, request, study_id):
 
-        # 스터디 댓글에 대한 데이터를 얻어온다.
-        comment_obj = StudyComment.objects.filter(study_id=study_id)
-        comment_data = StudyCommentSerializer(comment_obj, many=True).data
+        # access_token, user_index를 얻어온다.
+        access_token = request.COOKIES.get('access_token')
+        user_index = request.COOKIES.get('index')
 
-        for comment_item in comment_data:
+        if access_token != None and user_index != None:
+            # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
+            # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
+            res = self.auth.verify_user(access_token, user_index)
+
+            # 토큰이 유효하지 않을 때
+            if res.status_code != status.HTTP_200_OK:
+                return res
+
+        # 해당 스터디를 생성한 사람인지 확인한다.
+        isStudyWritter = isObjectExists(Study, id=study_id, user_id=user_index)
+
+        all_comment_data = []
+        parent_comment_num = StudyComment.objects.filter(study_id=study_id, comment_class=False).count()
+
+        for i in range(parent_comment_num):
+            comment_obj = StudyComment.objects.filter(study_id=study_id, comment_group=i).order_by('comment_class', 'create_date')
+            comment_data = StudyCommentSerializer(comment_obj, many=True).data
             
-            # comment_visible 값이 false 일 때
-            if not comment_item['comment_visible']:
-                comment_item['comment'] = "이 댓글은 비공개 상태입니다."
 
-            #  comment_state 값이 activate가 아닐 때
-            if comment_item['comment_state'] == 'delete':
-                comment_item['comment'] = "이 댓글은 삭제된 상태입니다."
-            elif comment_item['comment_state'] == 'block':
-                comment_item['comment'] = "이 댓글은 신고된 상태입니다."
+            for comment_item in comment_data:
+                
+                # 해당 댓글의 작성자인지 확인
+                isCommentWritter = isObjectExists(StudyComment, id=comment_item['id'], study_id=study_id, user_id=user_index)
+                
+                # 해당 스터디를 생성한 사람 or 해당 스터디 생성자만 원본 확인 가능
+                if not (isStudyWritter or isCommentWritter):
+                    # 비공개 상태일 때
+                    if not comment_item['comment_visible']:
+                        comment_item['comment'] = "이 댓글은 스터디 생성자만 확인할 수 있습니다."
 
-        return Response(comment_data, status=status.HTTP_200_OK)
+                    # 신고된 댓글일 때
+                    elif comment_item['comment_state'] == 'block':
+                        comment_item['comment'] = "이 댓글은 신고된 상태입니다."
+
+                #  댓글이 삭제되었을 때
+                if comment_item['comment_state'] == 'delete':
+                    comment_item['comment'] = "이 댓글은 삭제된 상태입니다."
+                
+                # 댓글 작성한 유저의 정보 확인
+                user_obj = User.objects.filter(id=comment_item['user_id']).first()
+                user_name = getattr(user_obj, "user_name")
+
+                user_profile_obj = ProfileImage.objects.filter(user_id=comment_item['user_id']).first()
+                user_profile_url_data = getattr(user_profile_obj, "img_url")
+
+                comment_item['comment_user_info'] = {
+                    "user_id": comment_item['user_id'],
+                    "user_name": user_name,
+                    "img_url": user_profile_url_data
+                }
+            
+            all_comment_data.append(comment_data)
+
+        return Response(all_comment_data, status=status.HTTP_200_OK)
 
     # create
     def post(self, request, study_id):
@@ -226,10 +269,12 @@ class UpdateOrDeleteComment(APIView):
             msg = {'state': 'fail', 'detail': 'Please choose the comment you wrote.'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
-        # 유저 삭제 동작
+        # 댓글 삭제 동작
         # comment_obj.delete()
+
         # comment_state 값을 delete 상태로 바꿔준다.
         setattr(comment_obj, "comment_state", "delete")
+        comment_obj.save()
         
         msg = {'state': 'success', 'detail': 'comment delete successed'}
         return Response(msg, status=status.HTTP_200_OK)
