@@ -341,20 +341,20 @@ class UserDeleteView(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 유저 삭제 동작
-        try:
-            # 로그아웃(쿠키 삭제) 처리
-            user.delete()
-            msg = {'state': 'success', 'detail': 'account delete successed'}
-                        
-            res.delete_cookie('access_token')
-            res.delete_cookie('index')
-            res.data = msg
-            
-            return res
-        except Exception as e:
-            print("ERROR NAME : {}".format(e), flush=True)
-            msg = {'state': 'fail', 'detail': 'account delete failed'}
-            return Response(msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # try:
+        # 로그아웃(쿠키 삭제) 처리
+        user.delete()
+        msg = {'state': 'success', 'detail': 'account delete successed'}
+                    
+        res.delete_cookie('access_token')
+        res.delete_cookie('index')
+        res.data = msg
+        
+        return res
+        # except Exception as e:
+        #     print("ERROR NAME : {}".format(e), flush=True)
+        #     msg = {'state': 'fail', 'detail': 'account delete failed'}
+        #     return Response(msg, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # 패스워드를 업데이트 하는 기능
 class UserUpdatePassword(APIView):
