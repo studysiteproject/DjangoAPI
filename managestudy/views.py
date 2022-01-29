@@ -75,11 +75,16 @@ class CreateOrViewComments(APIView):
                     comment_item['comment'] = "이 댓글은 삭제된 상태입니다."
                 
                 # 댓글 작성한 유저의 정보 확인
-                user_obj = User.objects.filter(id=comment_item['user_id']).first()
-                user_name = getattr(user_obj, "user_name")
+                if comment_item['user_id'] != None:
+                    user_obj = User.objects.filter(id=comment_item['user_id']).first()
+                    user_name = getattr(user_obj, "user_name")
 
-                user_profile_obj = ProfileImage.objects.filter(user_id=comment_item['user_id']).first()
-                user_profile_url_data = getattr(user_profile_obj, "img_url")
+                    user_profile_obj = ProfileImage.objects.filter(user_id=comment_item['user_id']).first()
+                    user_profile_url_data = getattr(user_profile_obj, "img_url")
+                
+                else:
+                    user_name = ("탈퇴한 사용자")
+                    user_profile_url_data = "default.png"
 
                 comment_item['comment_user_info'] = {
                     "user_id": comment_item['user_id'],
