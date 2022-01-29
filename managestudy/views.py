@@ -1,3 +1,4 @@
+from math import fabs
 from django.http.response import ResponseHeaders
 from django.shortcuts import render
 from django.db.models import Count
@@ -46,12 +47,12 @@ class CreateOrViewComments(APIView):
         isStudyWritter = isObjectExists(Study, id=study_id, user_id=user_index)
 
         all_comment_data = []
+
         parent_comment_num = StudyComment.objects.filter(study_id=study_id, comment_class=False).count()
 
         for i in range(parent_comment_num):
             comment_obj = StudyComment.objects.filter(study_id=study_id, comment_group=i).order_by('comment_class', 'create_date')
             comment_data = StudyCommentSerializer(comment_obj, many=True).data
-            
 
             for comment_item in comment_data:
                 
@@ -60,6 +61,7 @@ class CreateOrViewComments(APIView):
                 
                 # 해당 스터디를 생성한 사람 or 해당 스터디 생성자만 원본 확인 가능
                 if not (isStudyWritter or isCommentWritter):
+                # if isStudyWritter != False and isCommentWritter!= False:
                     # 비공개 상태일 때
                     if not comment_item['comment_visible']:
                         comment_item['comment'] = "이 댓글은 스터디 생성자만 확인할 수 있습니다."
@@ -111,7 +113,7 @@ class CreateOrViewComments(APIView):
         # 새로 추가될 댓글의 group_num을 구한다.
         # 가장 마지막으로 달린 부모 댓글의 group_num을 얻어온다.
         try:
-            obj = StudyComment.objects.filter(comment_class=False).last()
+            obj = StudyComment.objects.filter(study_id=study_id, comment_class=False).last()
             new_group_num = StudyCommentSerializer(obj).data['comment_group'] + 1
         except TypeError:
             new_group_num = 0
