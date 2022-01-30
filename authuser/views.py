@@ -381,7 +381,7 @@ class PasswordReset(APIView):
 
             # 만약 존재하지 않는 사용자일 때
             msg = {'state': 'fail', 'detail': 'invalid token. Check User Info'}
-            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 현재 계정의 상태를 확인
         # 정지(제제) 상태면 계정 활성화를 진행하지 않는다.
