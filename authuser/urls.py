@@ -10,7 +10,7 @@ urlpatterns = [
     path('verify_user', TokenAuth.as_view()),
     path('password/verify', VerifyPassword.as_view()),
     path('password/reset', PasswordReset.as_view()),
-    path('email/send', SendAuthEmail.as_view()),
     path('password/reset/send', SendPasswordResetEmail.as_view()),
+    path('email/send', SendAuthEmail.as_view()),
     path('email/verify', VerifyAuthEmail.as_view()),
 ]
