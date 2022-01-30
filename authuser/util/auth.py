@@ -365,6 +365,29 @@ class mail_auth():
         self.email.send()
 
         return True
+    
+    def send_password_reset_mail(self, input_id, send_to_email):
+
+        payload = {
+            'user_id': input_id,
+            'user_email': send_to_email
+        }
+        mail_auth_token = self.create_mail_token(payload)
+
+        # query = {'user_mail_auth_token': mail_auth_token}
+
+        # auth_url = "{}/auth/email/verify?".format(USE_SERVER) + parse.urlencode(query, doseq=True)
+        auth_url = "{}/auth/password/reset/{}".format(FRONTEND_SERVER, mail_auth_token)
+
+        self.title = 'CatchStudys 패스워드 초기화 메일입니다.'
+        self.body = '패스워드 초기화 페이지 URL 입니다.\n{}\n{}분 안에 링크를 클릭하여 패스워드를 변경하세요.'.format(auth_url, self.EMAIL_TOKEN_EXP)
+
+        self.email.subject=self.title
+        self.email.body=self.body
+        self.email.to = [send_to_email]
+        self.email.send()
+
+        return True
 
     # mail 인증 token 생성
     def create_mail_token(self, payload):

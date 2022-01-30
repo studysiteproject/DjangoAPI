@@ -1,3 +1,4 @@
+from apiserver.util.tools import isObjectExists
 from manageuser.util.manage import manage
 import re
 import json
@@ -255,6 +256,46 @@ class SendAuthEmail(APIView):
         msg = {'state': 'success', 'detail': 'sent you an authentication email. The valid time of the authentication email is 30 minutes.'}
         return Response(msg, status=status.HTTP_200_OK)
 
+class SendPasswordResetEmail(APIView):
+
+    email_auth = mail_auth()
+    user_data_verify = input_data_verify()
+
+    def get(self, request):
+
+        input_id = request.GET.get('user_id')
+        input_email = request.GET.get('user_email')
+
+        # user_id 필드 미 입력 시
+        if not input_id:
+            msg = {'available': False, 'detail': 'input user_id'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+        
+        # ID 입력 값 규칙 확인
+        if self.user_data_verify.verify_user_id(input_id) == False:
+            msg = {'state': 'fail', 'detail': 'user_id is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # user_email 필드 미 입력 시
+        if not input_email:
+            msg = {'available': False, 'detail': 'input user_email'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 적절한 이메일 입력 값인지 확인한다.
+        if not self.user_data_verify.verify_user_email(input_email):
+            msg = {'state': 'fail', 'detail': 'user_email is not conform to the rule'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 존재하는 사용자인지 확인
+        if isObjectExists(User, user_id=input_id, user_email=input_email):
+            self.email_auth.send_password_reset_mail(input_id, input_email)
+
+            msg = {'state': 'success', 'detail': 'sent you an password reset page email. The valid time of password reset page email is 30 minutes.'}
+            return Response(msg, status=status.HTTP_200_OK)
+        else:
+            msg = {'state': 'fail', 'detail': 'invalid user_id or user_email. Check User Info'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
 class VerifyAuthEmail(APIView):
 
     email_auth = mail_auth()
@@ -303,6 +344,67 @@ class VerifyAuthEmail(APIView):
 
         msg = {'state': 'success', 'detail': 'this account is activated!'}
         return Response(msg, status=status.HTTP_200_OK)
+
+class PasswordReset(APIView):
+
+    auth = jwt_auth()
+    email_auth = mail_auth()
+    manage_user = manage()
+
+    def post(self, request):
+
+        data = json.loads(request.body)
+        password_reset_page_auth_token = unquote(data['password_reset_page_auth_token'])
+        new_user_pw = unquote(data['new_user_pw'])
+        check_new_pw = unquote(data['check_new_pw'])
+
+        # 새로 입력한 패스워드와 확인 패스워드가 다를 때
+        if new_user_pw != check_new_pw:
+            msg = {'status': 'false', 'msg': 'new_user_pw and check_new_pw are not the same.'}
+            return Response(msg, status=status.HTTP_400_BAD_REQUEST)
+
+        # 패스워드 초기화 토큰 인증 실패(토큰 시간 초과 등)
+        if not self.email_auth.verify_mail_token(password_reset_page_auth_token):
+            msg = {'state': 'fail', 'detail': 'invalid password reset page token. re-send mail please'}
+            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # 유효한 토큰이라면, 해당 토큰에서 유저 정보를 얻어옴
+        get_payload = self.auth.get_payload(password_reset_page_auth_token)
+        user_id = get_payload['user_id']
+        user_email = get_payload['user_email']
+
+        # 해당되는 사용자의 오브젝트를 얻어온다.
+        try:
+            user = User.objects.get(user_id=user_id, user_email=user_email)
+        except Exception as e:
+            print("ERROR NAME : {}".format(e), flush=True)
+
+            # 만약 존재하지 않는 사용자일 때
+            msg = {'state': 'fail', 'detail': 'invalid token. Check User Info'}
+            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 현재 계정의 상태를 확인
+        # 정지(제제) 상태면 계정 활성화를 진행하지 않는다.
+        serializer = UserSerializer(user)
+        account_state = serializer.data['account_state']
+
+        if account_state == 'block':
+            msg = {'state': 'fail', 'detail': 'this account is block account. unblock account first.', 'account': 'block'}
+            return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
+
+        # 새로운 패스워드로 패스워드를 변경한다.
+        new_password = self.manage_user.create_hash_password(new_user_pw)
+        setattr(user, "user_pw", new_password)
+        user.save()
+
+        msg = {'state': 'success', 'detail': 'Success Password Reset. Relogin please'}
+        res = Response(msg, status=status.HTTP_200_OK)
+
+        # 재로그인을 위해 토큰 삭제
+        res.delete_cookie('access_token')
+        res.delete_cookie('index')
+
+        return res
 
 class VerifyPassword(APIView):
 
