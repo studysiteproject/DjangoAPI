@@ -40,7 +40,7 @@
 
 ---
 
-- [기획내용 & 진행도](https://www.notion.so/91c98ac183cf43c1b6fe010fa40ff50d)
+- [프로젝트 노션 ](https://www.notion.so/91c98ac183cf43c1b6fe010fa40ff50d)
 - [API Docs](https://www.notion.so/API-DOCS-e4d7c6948b99490e9af130151d62e750)
 
 <br/>
