@@ -27,7 +27,7 @@ FRONTEND_SERVER = getattr(settings, 'FRONTEND_SERVER', None)
 
 class jwt_auth():
 
-    TOKEN_EXP = 30000 # 300 seconds
+    TOKEN_EXP = 300 # 300 seconds
     REFRESH_TOKEN_EXP = 1 # 1 day
 
     # jwt 인코딩에 사용될 사설키 정보를 얻어옴
