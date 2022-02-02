@@ -8,7 +8,7 @@
 
 **사이트 링크** : [https://catchstudys.com/](https://catchstudys.com/)
 
-
+<br/>
 
 ### 🧑‍💻 팀원
 
@@ -22,7 +22,7 @@
 - **임채민**
     - **Github** : [https://github.com/lacram](https://github.com/lacram)
 
-
+<br/>
 
 **[ 백엔드(Spring) ]** : 이종찬, 임채민
 
@@ -34,17 +34,16 @@
 
 **[ 기획, 디자인 ]** : 김동연, 이종찬, 임채민
 
-
+<br/>
 
 ### 📝 프로젝트때 작성한 문서 & 진행도
 
 ---
 
 - [기획내용 & 진행도](https://www.notion.so/91c98ac183cf43c1b6fe010fa40ff50d)
-
 - [API Docs](https://www.notion.so/API-DOCS-e4d7c6948b99490e9af130151d62e750)
 
-  
+<br/>
 
 ### 🏗️ 기능
 
@@ -56,15 +55,14 @@
 
 - 사용자의 스터디 즐겨찾기, 댓글 관리 기능 구현
 
-  
+<br/>
 
 ### 🏗️ CI/CD 설계
 
 ---
 ![CICD](https://s3.us-west-2.amazonaws.com/secure.notion-static.com/594fca06-773d-432a-a900-9a32c0df2066/%E1%84%91%E1%85%B3%E1%84%85%E1%85%A9%E1%84%8C%E1%85%A6%E1%86%A8%E1%84%90%E1%85%B3_%E1%84%83%E1%85%A1%E1%84%8B%E1%85%B5%E1%84%8B%E1%85%A5%E1%84%80%E1%85%B3%E1%84%85%E1%85%A2%E1%86%B7.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20220202%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20220202T090531Z&X-Amz-Expires=86400&X-Amz-Signature=ace18607f75159e17f366f8631d13a4880c653c8c8625f89b84165b5b10d05dc&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22%25E1%2584%2591%25E1%2585%25B3%25E1%2584%2585%25E1%2585%25A9%25E1%2584%258C%25E1%2585%25A6%25E1%2586%25A8%25E1%2584%2590%25E1%2585%25B3_%25E1%2584%2583%25E1%2585%25A1%25E1%2584%258B%25E1%2585%25B5%25E1%2584%258B%25E1%2585%25A5%25E1%2584%2580%25E1%2585%25B3%25E1%2584%2585%25E1%2585%25A2%25E1%2586%25B7.png%22&x-id=GetObject)
 
-
-
+<br/>
 
 ### 😎 Django 백엔드 서버를 만들며 경험한 것
 
@@ -78,7 +76,7 @@
 
 - JWT에 사용되는 키와 DB 정보 등 민감한 정보를 S3에 분리하여 관리
 
-  
+<br/>  
 
 ### 🛠️ Django를 시용한 백엔드 구축 중 어려웠던 것
 
@@ -94,7 +92,7 @@
 
 이때 안전한 토큰의 사용을 위해 `RS256` 방식을 사용하여 인코딩 하였습니다.
 
-
+<br/>
 
 JWT 토큰은 **사용자의 쿠키에 유저의 인덱스와 함께 설정됩니다.**
 
@@ -113,7 +111,7 @@ JWT 토큰은 **사용자의 쿠키에 유저의 인덱스와 함께 설정됩�
     
     - Refresh Token이 유효하지 않을 경우 : 쿠키에 설정된 Access Token과 index를 삭제 후 **재 로그인을 요청**합니다.
     
-      
+<br/>      
 
 - `jwt_auth` 클래스를 이용한 사용자 인증 예시
   
@@ -136,7 +134,7 @@ JWT 토큰은 **사용자의 쿠키에 유저의 인덱스와 함께 설정됩�
     		...
     ```
     
-
+<br/>
 
 
 ### **🛠 보완해야 할 점**
