@@ -28,12 +28,13 @@ COOKIE_SECURE = True
 USE_SERVER = "https://api.catchstudys.com"
 FRONTEND_SERVER = "https://www.catchstudys.com"
 
-CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOWED_ORIGINS = [
 	# 허용할 Origin 추가
     "https://catchstudys.com",
     "https://www.catchstudys.com"
 ]
 CORS_ALLOW_WHITELIST = [
-    'catchstudys.com'
+    'catchstudys.com',
+    'www.catchstudys.com'
 ]
