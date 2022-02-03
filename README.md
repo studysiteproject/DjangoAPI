@@ -8,7 +8,7 @@
 
 **사이트 링크** : [https://catchstudys.com/](https://catchstudys.com/)
 - [프론트엔드(React) Github](https://github.com/studysiteproject/Frontend)
-- [백엔드(Spring) Github]()
+- [백엔드(Spring) Github](https://github.com/studysiteproject/SpringApi)
 
 
 <br/>
@@ -81,7 +81,7 @@
 
 <br/>  
 
-### 🛠️ Django를 시용한 백엔드 구축 중 어려웠던 것
+### 🛠️ Django를 용한 백엔드 구축 중 어려웠던 것
 
 ---
 
