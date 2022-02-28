@@ -17,8 +17,8 @@ class User(models.Model):
         db_table = 'user'
 
 class UserReport(models.Model):
-    reporter_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reporter_id", db_column="reporter_id", primary_key=True)
-    reported_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reported_id", db_column="reported_id", unique=True)
+    reporter_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reporter", db_column="reporter_id", primary_key=True)
+    reported_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reported", db_column="reported_id", unique=True)
     description = models.TextField()
     create_date = models.DateTimeField(auto_now_add=True, null=True)
 

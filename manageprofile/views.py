@@ -100,13 +100,14 @@ class GetUserBasicInfo(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # Userurl Object에서 닉네임 / 이메일 / 직업 같은 기본 정보만 확인
-        user_obj = User.objects.filter(id=user_index).first()
+        user_obj = User.objects.get(id=user_index)
         user_basic_data = UserSerializerForResume(user_obj).data
 
         # 프로필 사진의 경로를 확인하기 위해 Profile의 이미지 주소가 저장된 모델을 확인
-        user_profile_obj = ProfileImage.objects.filter(user_id=user_index).first()
-        user_profile_url_data = getattr(user_profile_obj, "img_url")
-        user_basic_data["img_url"] = user_profile_url_data
+        user_profile_obj = ProfileImage.objects.get(user_id=user_index)
+        # user_profile_url_data = getattr(user_profile_obj, "img_url")
+        # user_basic_data["img_url"] = user_profile_obj.img_url
+        user_basic_data["img_url"] = user_profile_obj.img_url
 
         return Response(user_basic_data, status=status.HTTP_200_OK)
 
