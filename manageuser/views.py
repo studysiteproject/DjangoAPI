@@ -4,6 +4,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from django.db.models import F
 
 from apiserver.util.tools import *
 from authuser.views import SendAuthEmail
@@ -17,95 +18,6 @@ import boto3, json, base64, os
 
 # 인증에 사용되는 클래스 (authuser app)
 from authuser.util.auth import *
-
-class TESTAPI(APIView):
-
-    def get(self, request):
-        
-        test_data = [
-            {
-                "id": 1,
-                "title": "스터디 모집합니다.",
-                "user_info": {
-                    "id": 3,
-                    "user_name": "테스트이름",
-                    "img_url": "https://catchstudy-images.s3.ap-northeast-2.amazonaws.com/profile/default.png"              
-                },
-                "category" : "develop",
-                "tech_info": [
-                    {
-                        "id": 1,
-                        "tech_name": "Spring",
-                        "category": "dev",
-                        "img_url": "spring.svg"
-                    },
-                    {
-                        "id": 2,
-                        "tech_name": "Github",
-                        "category": "collaboration",
-                        "img_url": "github.svg"
-                    }
-                ],
-                "maxman": 3,
-                "nowman": 1,
-                "warn_cnt": 0,
-                "isfavorite": True,
-                "create_date": "2021-10-13T19:02:48.252"
-            },
-            {
-                "id": 2,
-                "title": "스터디 모집합니다.",
-                "user_info": {
-                    "id": 3,
-                    "user_name": "테스트이름22",
-                    "img_url": "https://catchstudy-images.s3.ap-northeast-2.amazonaws.com/profile/default.png"              
-                },
-                "category" : "develop",
-                "tech_info": [
-                    {
-                        "id": 1,
-                        "tech_name": "Spring",
-                        "category": "dev",
-                        "img_url": "spring.svg"
-                    },
-                    {
-                        "id": 2,
-                        "tech_name": "Github",
-                        "category": "collaboration",
-                        "img_url": "github.svg"
-                    }
-                ],
-                "maxman": 3,
-                "nowman": 1,
-                "warn_cnt": 1,
-                "isfavorite": False,
-                "create_date": "2021-10-13T19:02:48.252"
-            }
-        ]
-        
-        return Response(test_data, status=status.HTTP_200_OK)
-
-# Create your views here.
-class UserListView(APIView):
-
-    queryset = User.objects.all()
-
-    def get_object(self, queryset=None):
-        if queryset is None:
-            queryset = self.queryset
-
-        queryset = User.objects.all()
-        
-        return queryset
-    
-    def get(self, request, *args, **kwargs):
-
-        # 해당 모델의 전체 데이터 얻어오기
-        users = self.get_object()
-        # users = User.objects.all()
-
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
 # 현재 로그인한 사용자의 상세 프로필을 확인하는 기능
 class UserDetailView(APIView):
@@ -304,7 +216,8 @@ class UserUpdateView(APIView):
             # 만약에 이메일이 변경되었을 경우
             # 새롭게 인증을 하기 위해 임시로 계정을 휴면 상태로 변경해준다
             if key == "user_email":
-                setattr(user, "account_state", "inactive")
+                user.account_state = "inactive"
+                # setattr(user, "account_state", "inactive")
 
             setattr(user, key, value)
         
@@ -352,6 +265,7 @@ class UserDeleteView(APIView):
             res.data = msg
             
             return res
+
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             msg = {'state': 'fail', 'detail': 'account delete failed'}
@@ -417,7 +331,8 @@ class UserUpdatePassword(APIView):
         
         # 새로운 패스워드로 패스워드를 변경한다.
         new_password = self.manage_user.create_hash_password(post_data['new_user_pw'])
-        setattr(user, "user_pw", new_password)
+        user.user_pw = new_password
+        # setattr(user, "user_pw", new_password)
         user.save()
 
         # 패스워드 변경 후 로그아웃 처리
@@ -509,8 +424,10 @@ class ReportUser(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         # 1. 신고 대상 사용자 신고 수 1 증가
-        setattr(reported_user, "warning_cnt", int(reported_user.warning_cnt) + 1)
+        # setattr(reported_user, "warning_cnt", int(reported_user.warning_cnt) + 1)
+        reported_user.warning_cnt = F('warning_cnt') + 1
         reported_user.save()
+        reported_user.refresh_from_db()
 
         # 2. 사용자 신고 내역 DB에 신고 내역 추가
         UserReport.objects.create(
@@ -559,28 +476,28 @@ class UserResumeView(APIView):
         # 1. User Object에서 정보 확인
         user_obj = User.objects.filter(id=user_id)
         user_data = OrderedDicttoJson(UserSerializerForResume(user_obj, many=True).data, tolist=False)
-    
-        # 2. Usertechlist Object에서 정보 확인
-        user_tech_id_obj = Usertechlist.objects.filter(user_id=user_id)
-        user_tech_id_data = OrderedDicttoJson(UsertechlistSerializer(user_tech_id_obj, many=True).data, tolist=True)
 
-        # 2번 과정에서 얻은 tech_id를 가진 행을 모두 출력한다.
-        user_tech_info_obj = Technologylist.objects.filter(id__in=[tech_item['tech_id'] for tech_item in user_tech_id_data])
-        user_tech_info_data = OrderedDicttoJson(TechnologylistSerializer(user_tech_info_obj, many=True).data, tolist=True)
+        # 2. 사용자의 기술스택 정보 확인
+        # user_tech_id_obj = Usertechlist.objects.filter(user_id=user_id)
+        # user_tech_id_data = OrderedDicttoJson(UsertechlistSerializer(user_tech_id_obj, many=True).data, tolist=True)
+        user_tech_id_obj = Technologylist.objects.filter(usertechlist__user_id=user_id)
+        user_tech_info_data = [item for item in user_tech_id_obj.values()]
 
         # 3. Userurl Object에서 정보 확인
+        # user_url_data = OrderedDicttoJson(UserurlSerializer(user_url_obj, many=True).data, tolist=True)
+        # user_url_list = [item['url'] for item in user_url_data]
         user_url_obj = Userurl.objects.filter(user_id=user_id)
-        user_url_data = OrderedDicttoJson(UserurlSerializer(user_url_obj, many=True).data, tolist=True)
-        user_url_list = [item['url'] for item in user_url_data]
+        user_url_list = [item['url'] for item in user_url_obj.values('url')]
         
         # 4. applicationlist Object에서 스터디 참가 신청 시 작성한 내용 확인
+        # application_data = OrderedDicttoJson(ApplicationlistSerializer(application_obj, many=True).data, tolist=False)
+        # description_data = application_data['description']
         application_obj = Applicationlist.objects.filter(user_id=user_id, study_id=study_id)
-        application_data = OrderedDicttoJson(ApplicationlistSerializer(application_obj, many=True).data, tolist=False)
-        description_data = application_data['description']
+        description_data = [item['description'] for item in application_obj.values('description')]
 
         # 프로필 사진의 경로를 확인하기 위해 Profile의 이미지 주소가 저장된 모델을 확인
-        user_profile_obj = ProfileImage.objects.filter(user_id=user_id).first()
-        user_profile_url_data = getattr(user_profile_obj, "img_url")
+        user_profile_obj = ProfileImage.objects.get(user_id=user_id)
+        user_profile_url_data = user_profile_obj.img_url
 
         # 1~4 에서 얻은 내용을 합쳐 반환한다.
         user_resume_data = ConcatDict(
@@ -615,25 +532,20 @@ class UserProfileView(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 1. User Object에서 정보 확인
-        user_obj = User.objects.filter(id=user_id)
-        user_data = OrderedDicttoJson(UserSerializerForResume(user_obj, many=True).data, tolist=False)
-    
-        # 2. Usertechlist Object에서 정보 확인
-        user_tech_id_obj = Usertechlist.objects.filter(user_id=user_id)
-        user_tech_id_data = OrderedDicttoJson(UsertechlistSerializer(user_tech_id_obj, many=True).data, tolist=True)
+        user_obj = User.objects.get(id=user_id)
+        user_data = UserSerializerForResume(user_obj).data
 
-        # 2번 과정에서 얻은 tech_id를 가진 행을 모두 출력한다.
-        user_tech_info_obj = Technologylist.objects.filter(id__in=[tech_item['tech_id'] for tech_item in user_tech_id_data])
-        user_tech_info_data = OrderedDicttoJson(TechnologylistSerializer(user_tech_info_obj, many=True).data, tolist=True)
+        # 2. 사용자의 기술스택 정보 확인
+        user_tech_id_obj = Technologylist.objects.filter(usertechlist__user_id=user_id)
+        user_tech_info_data = [item for item in user_tech_id_obj.values()]
 
         # 3. Userurl Object에서 정보 확인
         user_url_obj = Userurl.objects.filter(user_id=user_id)
-        user_url_data = OrderedDicttoJson(UserurlSerializer(user_url_obj, many=True).data, tolist=True)
-        user_url_list = [item['url'] for item in user_url_data]
+        user_url_list = [item['url'] for item in user_url_obj.values('url')]
         
         # 프로필 사진의 경로를 확인하기 위해 Profile의 이미지 주소가 저장된 모델을 확인
-        user_profile_obj = ProfileImage.objects.filter(user_id=user_id).first()
-        user_profile_url_data = getattr(user_profile_obj, "img_url")
+        user_profile_obj = ProfileImage.objects.get(user_id=user_id)
+        user_profile_url_data = user_profile_obj.img_url
 
         # 1~4 에서 얻은 내용을 합쳐 반환한다.
         user_resume_data = ConcatDict(
