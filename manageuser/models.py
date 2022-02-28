@@ -50,7 +50,7 @@ class Technologylist(models.Model):
         db_table = 'technologylist'
 
 class Usertechlist(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user_id", primary_key=True)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user_id", related_name="techuser", primary_key=True)
     tech_id = models.ForeignKey(Technologylist, on_delete=models.CASCADE, db_column="tech_id", unique=True)
 
     class Meta:

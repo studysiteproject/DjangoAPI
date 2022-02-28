@@ -175,10 +175,11 @@ class CreateReplyComment(APIView):
         # 부모댓글의 정보를 불러온다.
         try:
             parent_comment_obj = StudyComment.objects.get(id=comment_id)
-            parent_comment_data = StudyCommentSerializer(parent_comment_obj).data
+            # parent_comment_data = StudyCommentSerializer(parent_comment_obj).data
 
             # 만약 선택한 댓글이 부모 댓글이 아닐 경우
-            if parent_comment_data['comment_class'] != False:
+            # if parent_comment_data['comment_class'] != False:
+            if parent_comment_obj.comment_class != False:
                 msg = {'state': 'fail', 'detail': 'reply comment can only be written by parents comment'}
                 return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
@@ -188,7 +189,7 @@ class CreateReplyComment(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         # 부모 댓글의 값과 동일하게 사용한다.
-        new_group_num = parent_comment_data['comment_group']
+        new_group_num = parent_comment_obj.comment_group
         
         # 부모 댓글과 같은 그룹인 댓글들의 갯수를 사용하여 새로운 번호를 부여한다.
         # 0부터 시작하기 때문에, count 된 값에서 추가적으로 값을 더하지 않는다.
@@ -244,13 +245,13 @@ class UpdateOrDeleteComment(APIView):
         post_data = {key: data[key] for key in data.keys() if key in ('comment')}
 
         try:
-            comment_obj = StudyComment.objects.filter(id=comment_id, user_id=user_index, study_id=study_id).get()
+            comment_obj = StudyComment.objects.get(id=comment_id, user_id=user_index, study_id=study_id)
         except Exception as e:
             msg = {'state': 'fail', 'detail': 'Please choose the comment you wrote.'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         # 댓글의 내용 변경 & 저장
-        setattr(comment_obj, "comment", post_data['comment'])
+        comment_obj.comment = post_data['comment']
         comment_obj.save()
 
         msg = {'state': 'success', 'detail': 'update successed'}
@@ -271,7 +272,7 @@ class UpdateOrDeleteComment(APIView):
             return res
         
         try:
-            comment_obj = StudyComment.objects.filter(id=comment_id, study_id=study_id, user_id=user_index).get()
+            comment_obj = StudyComment.objects.get(id=comment_id, study_id=study_id, user_id=user_index).get()
         except:
             msg = {'state': 'fail', 'detail': 'Please choose the comment you wrote.'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
@@ -280,7 +281,7 @@ class UpdateOrDeleteComment(APIView):
         # comment_obj.delete()
 
         # comment_state 값을 delete 상태로 바꿔준다.
-        setattr(comment_obj, "comment_state", "delete")
+        comment_obj.comment_state = "delete"
         comment_obj.save()
         
         msg = {'state': 'success', 'detail': 'comment delete successed'}
@@ -323,23 +324,23 @@ class UpdateVisibleComment(APIView):
         # 현재 댓글의 가시여부를 수정하려는 사용자가 스터디의 생성자인지 확인한다.
         # 해당 스터디의 생성자가 현재 로그인한 유저인지 확인
         try:
-            study_obj = Study.objects.filter(id=study_id, user_id=user_index).get()
+            study_obj = Study.objects.get(id=study_id, user_id=user_index)
         except:
             msg = {'state': 'fail', 'detail': 'Only the user who created this study can change the visible flag of the comment.'}
             return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
         # 현재 댓글의 정보를 얻어온다.
         try:
-            comment_obj = StudyComment.objects.filter(id=comment_id, study_id=study_id).get()
+            comment_obj = StudyComment.objects.get(id=comment_id, study_id=study_id)
         except:
             msg = {'state': 'fail', 'detail': 'comment does not exist. check comment please.'}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
         
         # 댓글의 내용 변경 & 저장
         if visible.upper() == "TRUE":
-            setattr(comment_obj, "comment_visible", True)
+            comment_obj.comment_visible = True
         elif visible.upper() == "FALSE":
-            setattr(comment_obj, "comment_visible", False)
+            comment_obj.comment_visible = False
 
         comment_obj.save()
 

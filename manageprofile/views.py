@@ -276,13 +276,17 @@ class ViewTechList(APIView):
             msg = {"status": "false", "detail": "invalid user. check please user before view"}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
-        # Usertechlist Object에서 정보 확인
-        user_tech_id_obj = Usertechlist.objects.filter(user_id=user_index)
-        user_tech_id_data = OrderedDicttoJson(UsertechlistSerializer(user_tech_id_obj, many=True).data, tolist=True)
+        # # Usertechlist Object에서 정보 확인
+        # user_tech_id_obj = Usertechlist.objects.filter(user_id=user_index)
+        # user_tech_id_data = OrderedDicttoJson(UsertechlistSerializer(user_tech_id_obj, many=True).data, tolist=True)
 
-        # 위 과정에서 얻은 tech_id를 가진 행을 모두 출력한다.
-        user_tech_info_obj = Technologylist.objects.filter(id__in=[tech_item['tech_id'] for tech_item in user_tech_id_data])
-        user_tech_info_data = OrderedDicttoJson(TechnologylistSerializer(user_tech_info_obj, many=True).data, tolist=True)
+        # # 위 과정에서 얻은 tech_id를 가진 행을 모두 출력한다.
+        # user_tech_info_obj = Technologylist.objects.filter(id__in=[tech_item['tech_id'] for tech_item in user_tech_id_data])
+        # user_tech_info_data = OrderedDicttoJson(TechnologylistSerializer(user_tech_info_obj, many=True).data, tolist=True)
+
+        # 2. 사용자의 기술스택 정보 확인
+        user_tech_id_obj = Technologylist.objects.filter(usertechlist__user_id=user_index)
+        user_tech_info_data = [item for item in user_tech_id_obj.values()]
 
         return Response(user_tech_info_data, status=status.HTTP_200_OK)
 
@@ -421,9 +425,9 @@ class ViewFavoriteList(APIView):
 
         # Userurl Object에서 정보 확인
         user_favorite_obj = UserFavorite.objects.filter(user_id=user_index)
-        favorite_serializers = UserFavoriteSerializer(user_favorite_obj, many=True)
-        user_favorite_data = OrderedDicttoJson(favorite_serializers.data, tolist=True)
-        user_favorite_list = [item['study_id'] for item in user_favorite_data]
+        # favorite_serializers = UserFavoriteSerializer(user_favorite_obj, many=True)
+        # user_favorite_data = OrderedDicttoJson(favorite_serializers.data, tolist=True)
+        user_favorite_list = [item['study_id'] for item in user_favorite_obj.values('study_id')]
 
         return Response(user_favorite_list, status=status.HTTP_200_OK)
 
