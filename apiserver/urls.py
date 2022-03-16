@@ -15,11 +15,16 @@ Including another URLconf
 """
 from django.urls import path, include
 from django.contrib import admin
+from django.conf import settings
+import debug_toolbar
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('user/', include('manageuser.urls')),
-    path('study/', include('managestudy.urls')),
-    path('profile/', include('manageprofile.urls')),
-    path('auth/', include('authuser.urls')),
+    path("admin/", admin.site.urls),
+    path("user/", include("manageuser.urls")),
+    path("study/", include("managestudy.urls")),
+    path("profile/", include("manageprofile.urls")),
+    path("auth/", include("authuser.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns = [path("__debug__/", include(debug_toolbar.urls))] + urlpatterns

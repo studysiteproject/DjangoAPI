@@ -122,7 +122,7 @@ JWT 토큰은 **사용자의 쿠키에 유저의 인덱스와 함께 설정됩�
     
     ```python
     # 사용될 클래스 호출
-    auth = jwt_auth()
+    #  auth = jwt_auth()
     
     def get(self, request):
     
@@ -132,7 +132,7 @@ JWT 토큰은 **사용자의 쿠키에 유저의 인덱스와 함께 설정됩�
     
         # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
         # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
-        res = self.auth.verify_user(access_token, user_index)
+        res = jwt_auth.verify_user(access_token, user_index)
     
     		...
     ```
