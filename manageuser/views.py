@@ -254,10 +254,6 @@ class UserUpdateView(APIView):
 
 # 현재 로그인한 사용자를 탈퇴 시키는 기능
 class UserDeleteView(APIView):
-
-    # 사용될 클래스 호출
-    #  auth = jwt_auth()
-
     def delete(self, request, *args, **kwargs):
 
         # access_token, user_index를 얻어온다.
@@ -383,11 +379,6 @@ class UserUpdatePassword(APIView):
 
 # 사용자가 인증된 사용자인지(정상적인 로그인을 진행한 상태인지) 확인하는 페이지
 class AuthPage(APIView):
-
-    # 사용될 클래스 호출
-    #  auth = jwt_auth()
-    # manage_user = manage()
-
     def get(self, request, *args, **kwargs):
 
         # access_token, user_index를 얻어온다.
@@ -410,12 +401,6 @@ class AuthPage(APIView):
 
 # 로그인한 사용자와 같은 스터디에 소속된 사용자(팀원)신고
 class ReportUser(APIView):
-
-    # 사용될 클래스 호출
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def post(self, request, *args, **kwargs):
 
         # access_token, user_index를 얻어온다.

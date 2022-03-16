@@ -1,6 +1,7 @@
 asgiref==3.4.1
 attrs==21.2.0
 awscli==1.20.46
+backports.zoneinfo==0.2.1
 bcrypt==3.2.0
 black==22.1.0
 boto3==1.18.46
@@ -10,7 +11,7 @@ cffi==1.14.6
 click==8.0.4
 colorama==0.4.3
 cryptography==3.4.8
-Django==3.2.6
+Django==4.0.3
 django-cors-headers==3.10.0
 django-debug-toolbar==3.2.4
 djangorestframework==3.12.4
@@ -42,7 +43,6 @@ PyYAML==5.4.1
 rsa==4.7.2
 s3transfer==0.5.0
 six==1.16.0
-sqlparse==0.4.1
 toml==0.10.2
 tomli==2.0.1
 typing_extensions==4.1.1

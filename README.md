@@ -121,9 +121,6 @@ JWT 토큰은 **사용자의 쿠키에 유저의 인덱스와 함께 설정됩�
     쿠키에 설정된 `access token`과 `사용자 인덱스`를 얻어와 **decode된 토큰의 payload와 일치하는지 확인**합니다.
     
     ```python
-    # 사용될 클래스 호출
-    #  auth = jwt_auth()
-    
     def get(self, request):
     
         # access_token, user_index를 얻어온다.
@@ -132,7 +129,7 @@ JWT 토큰은 **사용자의 쿠키에 유저의 인덱스와 함께 설정됩�
     
         # 인증 성공 시, res(Response) 오브젝트의 쿠키에 토큰 & index 등록, status 200, 성공 msg 등록
         # 인증 실패 시, res(Response) 오브젝트의 쿠키에 토큰 & index 삭제, status 401, 실패 msg 등록
-        res = jwt_auth.verify_user(access_token, user_index)
+        res = verify_user(access_token, user_index)
     
     		...
     ```

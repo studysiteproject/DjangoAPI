@@ -28,10 +28,6 @@ import hashlib
 
 class UploadImage(APIView):  # 프로필 이미지 업로드
 
-    # 사용될 클래스 호출
-    #  auth = jwt_auth()
-    # manage_user = manage()
-
     AWS_BUCKET_NAME = "catchstudy-images"
     AWS_REGION = "ap-northeast-2"
     DIR_NAME = "profile"

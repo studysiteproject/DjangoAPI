@@ -123,10 +123,6 @@ class UserLogin(APIView):
 
 
 class UserLogout(APIView):
-
-    # 사용될 클래스 호출
-    #  auth = jwt_auth()
-
     def get(self, request):
 
         # access_token, user_index를 얻어온다.
