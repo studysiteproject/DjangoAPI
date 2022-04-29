@@ -27,9 +27,7 @@ with open(os.path.dirname(os.path.realpath(__file__)) + "/../key/public.pem", "r
 # s3에 존재하는 secrets.json 파일에서 SECRET_KEY를 얻어옴
 s3_resource = boto3.resource("s3")
 my_bucket = s3_resource.Bucket(name="deploy-django-api")
-SECRET_FILE_DATA = json.loads(
-    my_bucket.Object("secret/secrets.json").get()["Body"].read()
-)
+SECRET_FILE_DATA = json.loads(my_bucket.Object("secret/secrets.json").get()["Body"].read())
 SECRET_KEY = SECRET_FILE_DATA["SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -53,9 +51,7 @@ INSTALLED_APPS = [
     "corsheaders",
 ]
 
-REST_FRAMEWORK = {
-    "DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",)
-}
+REST_FRAMEWORK = {"DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",)}
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",

@@ -14,12 +14,6 @@ from apiserver.util.tools import isObjectExists
 
 
 class CreateOrViewComments(APIView):  # 새로운 댓글 추가 & 전체 확인
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
-    # view
     def get(self, request, study_id):
 
         # access_token, user_index를 얻어온다.
@@ -40,14 +34,12 @@ class CreateOrViewComments(APIView):  # 새로운 댓글 추가 & 전체 확인
 
         all_comment_data = []
 
-        parent_comment_num = StudyComment.objects.filter(
-            study_id=study_id, comment_class=False
-        ).count()
+        parent_comment_num = StudyComment.objects.filter(study_id=study_id, comment_class=False).count()
 
         for i in range(parent_comment_num):
-            comment_obj = StudyComment.objects.filter(
-                study_id=study_id, comment_group=i
-            ).order_by("comment_class", "create_date")
+            comment_obj = StudyComment.objects.filter(study_id=study_id, comment_group=i).order_by(
+                "comment_class", "create_date"
+            )
             comment_data = StudyCommentSerializer(comment_obj, many=True).data
 
             for comment_item in comment_data:
@@ -84,9 +76,7 @@ class CreateOrViewComments(APIView):  # 새로운 댓글 추가 & 전체 확인
                     user_obj = User.objects.filter(id=comment_item["user_id"]).first()
                     user_name = getattr(user_obj, "user_name")
 
-                    user_profile_obj = ProfileImage.objects.filter(
-                        user_id=comment_item["user_id"]
-                    ).first()
+                    user_profile_obj = ProfileImage.objects.filter(user_id=comment_item["user_id"]).first()
                     user_profile_url_data = getattr(user_profile_obj, "img_url")
 
                 comment_item["comment_user_info"] = {
@@ -121,9 +111,7 @@ class CreateOrViewComments(APIView):  # 새로운 댓글 추가 & 전체 확인
         # 새로 추가될 댓글의 group_num을 구한다.
         # 가장 마지막으로 달린 부모 댓글의 group_num을 얻어온다.
         try:
-            obj = StudyComment.objects.filter(
-                study_id=study_id, comment_class=False
-            ).last()
+            obj = StudyComment.objects.filter(study_id=study_id, comment_class=False).last()
             new_group_num = StudyCommentSerializer(obj).data["comment_group"] + 1
         except TypeError:
             new_group_num = 0
@@ -264,9 +252,7 @@ class UpdateOrDeleteComment(APIView):
         post_data = {key: data[key] for key in data.keys() if key in ("comment")}
 
         try:
-            comment_obj = StudyComment.objects.get(
-                id=comment_id, user_id=user_index, study_id=study_id
-            )
+            comment_obj = StudyComment.objects.get(id=comment_id, user_id=user_index, study_id=study_id)
         except StudyComment.DoesNotExist:
             msg = {"state": "fail", "detail": "Please choose the comment you wrote."}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
@@ -293,9 +279,7 @@ class UpdateOrDeleteComment(APIView):
             return res
 
         try:
-            comment_obj = StudyComment.objects.get(
-                id=comment_id, study_id=study_id, user_id=user_index
-            )
+            comment_obj = StudyComment.objects.get(id=comment_id, study_id=study_id, user_id=user_index)
         except StudyComment.DoesNotExist:
             msg = {"state": "fail", "detail": "Please choose the comment you wrote."}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)

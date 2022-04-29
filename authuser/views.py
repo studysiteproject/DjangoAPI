@@ -3,15 +3,16 @@ import json
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from authuser.util.input_data_verify import verify_user_email, verify_user_id
+from authuser.util.input_data_verify import verify_user_email, verify_user_id, verify_user_name
 
 from authuser.util.jwt_auth import (
     create_refresh_token,
     create_token,
+    get_payload,
     register_refresh_token,
     verify_user,
 )
-from authuser.util.mail_auth import send_auth_mail, send_password_reset_mail
+from authuser.util.mail_auth import send_auth_mail, send_password_reset_mail, verify_mail_token
 from .util.auth import logout
 from urllib.parse import unquote
 
@@ -114,9 +115,7 @@ class UserLogin(APIView):
         res = Response(msg, status=status.HTTP_200_OK)
 
         # 쿠키 값 설정
-        res.set_cookie(
-            "access_token", access_token, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN
-        )
+        res.set_cookie("access_token", access_token, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
         res.set_cookie("index", user_index, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
 
         return res
@@ -351,8 +350,8 @@ class VerifyAuthEmail(APIView):
             return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
         # 유효한 토큰이라면, 해당 토큰에서 유저 이메일을 얻어옴
-        get_payload = get_payload(user_mail_auth_token)
-        auth_mail = get_payload["auth_mail"]
+        payload = get_payload(user_mail_auth_token)
+        auth_mail = payload["auth_mail"]
 
         # 해당 이메일을 가진 사용자의 계정을 활성화 해준다. (inactive -> active)
         try:
@@ -428,9 +427,9 @@ class PasswordReset(APIView):
             return Response(msg, status=status.HTTP_401_UNAUTHORIZED)
 
         # 유효한 토큰이라면, 해당 토큰에서 유저 정보를 얻어옴
-        get_payload = get_payload(password_reset_page_auth_token)
-        user_id = get_payload["user_id"]
-        user_email = get_payload["user_email"]
+        payload = get_payload(password_reset_page_auth_token)
+        user_id = payload["user_id"]
+        user_email = payload["user_email"]
 
         # 해당되는 사용자의 오브젝트를 얻어온다.
         try:
@@ -471,10 +470,6 @@ class PasswordReset(APIView):
 
 
 class VerifyPassword(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-
     def post(self, request):
 
         # access_token, user_index를 얻어온다.
