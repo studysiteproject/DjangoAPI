@@ -34,58 +34,61 @@ class CreateOrViewComments(APIView):  # 새로운 댓글 추가 & 전체 확인
 
         all_comment_data = []
 
-        parent_comment_num = StudyComment.objects.filter(study_id=study_id, comment_class=False).count()
+        obj = (
+            StudyComment.objects.select_related("user_id")
+            .prefetch_related("user_id__profileimage_set")
+            .filter(study_id=study_id)
+        )
+
+        isStudyWritter = isObjectExists(Study, id=study_id, user_id=user_index)
+
+        parent_comment_num = obj.filter(comment_class=False).count()
 
         for i in range(parent_comment_num):
-            comment_obj = StudyComment.objects.filter(study_id=study_id, comment_group=i).order_by(
-                "comment_class", "create_date"
-            )
-            comment_data = StudyCommentSerializer(comment_obj, many=True).data
+
+            comment_data = obj.filter(comment_group=i)
+            group_command_data = []
 
             for comment_item in comment_data:
 
                 # 해당 댓글의 작성자인지 확인
-                isCommentWritter = isObjectExists(
-                    StudyComment,
-                    id=comment_item["id"],
-                    study_id=study_id,
-                    user_id=user_index,
-                )
+                isCommentWritter = comment_item.user_id.id == user_index
 
                 # 해당 스터디를 생성한 사람 or 해당 스터디 생성자만 원본 확인 가능
                 if not (isStudyWritter or isCommentWritter):
-                    # if isStudyWritter != False and isCommentWritter!= False:
+
                     # 비공개 상태일 때
-                    if not comment_item["comment_visible"]:
-                        comment_item["comment"] = "이 댓글은 스터디 생성자만 확인할 수 있습니다."
+                    if not comment_item.comment_visible:
+                        comment_item.comment = "이 댓글은 스터디 생성자만 확인할 수 있습니다."
 
                     # 신고된 댓글일 때
-                    elif comment_item["comment_state"] == "block":
-                        comment_item["comment"] = "이 댓글은 신고된 상태입니다."
+                    elif comment_item.comment_state == "block":
+                        comment_item.comment = "이 댓글은 신고된 상태입니다."
 
                 #  댓글이 삭제되었을 때
-                if comment_item["comment_state"] == "delete":
-                    comment_item["comment"] = "이 댓글은 삭제된 상태입니다."
+                if comment_item.comment_state == "delete":
+                    comment_item.comment = "이 댓글은 삭제된 상태입니다."
 
                 # 댓글 작성한 유저의 정보 확인
-                if comment_item["user_id"] is None:
+                if comment_item.user_id is None:
                     user_name = "탈퇴한 사용자"
-                    user_profile_url_data = "default.png"
+                    user_profile_url = "default.png"
 
                 else:
-                    user_obj = User.objects.filter(id=comment_item["user_id"]).first()
-                    user_name = getattr(user_obj, "user_name")
+                    user_name = comment_item.user_id.user_name
+                    user_profile_url = comment_item.user_id.profileimage_set.first().img_url
 
-                    user_profile_obj = ProfileImage.objects.filter(user_id=comment_item["user_id"]).first()
-                    user_profile_url_data = getattr(user_profile_obj, "img_url")
+                one_comment_data = StudyCommentSerializer(comment_item).data
 
-                comment_item["comment_user_info"] = {
-                    "user_id": comment_item["user_id"],
+                one_comment_data["comment_user_info"] = {
+                    "user_id": comment_item.user_id.id,
                     "user_name": user_name,
-                    "img_url": user_profile_url_data,
+                    "img_url": user_profile_url,
                 }
 
-            all_comment_data.append(comment_data)
+                group_command_data.append(one_comment_data)
+
+            all_comment_data.append(group_command_data)
 
         return Response(all_comment_data, status=status.HTTP_200_OK)
 
@@ -146,11 +149,6 @@ class CreateOrViewComments(APIView):  # 새로운 댓글 추가 & 전체 확인
 
 # 새로운 대댓글 추가
 class CreateReplyComment(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def post(self, request, study_id, comment_id):
 
         # access_token, user_index를 얻어온다.
@@ -228,11 +226,6 @@ class CreateReplyComment(APIView):
 
 # 댓글(대댓글) 업데이트 or 삭제
 class UpdateOrDeleteComment(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def put(self, request, study_id, comment_id):
 
         # access_token, user_index를 얻어온다.
@@ -297,11 +290,6 @@ class UpdateOrDeleteComment(APIView):
 
 # 스터디 생성자가 댓글의 가시 여부를 변경
 class UpdateVisibleComment(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def put(self, request, study_id, comment_id):
 
         # access_token, user_index를 얻어온다.

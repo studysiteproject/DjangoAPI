@@ -22,9 +22,7 @@ class Study(models.Model):
 # 스터디 댓글 관련 모델
 class StudyComment(models.Model):
     id = models.BigAutoField(primary_key=True)
-    user_id = models.ForeignKey(
-        User, on_delete=models.SET_NULL, db_column="user_id", null=True
-    )
+    user_id = models.ForeignKey(User, on_delete=models.SET_NULL, db_column="user_id", null=True)
     study_id = models.ForeignKey(Study, on_delete=models.CASCADE, db_column="study_id")
     comment = models.TextField()
     comment_class = models.BooleanField(default=False, null=True)
