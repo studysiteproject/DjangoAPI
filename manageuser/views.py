@@ -66,9 +66,7 @@ class UserCreateView(APIView):
 
         data = json.loads(request.body)
         post_data = {
-            key: data[key]
-            for key in data.keys()
-            if key not in ("id", "warning_cnt", "account_state", "create_date")
+            key: data[key] for key in data.keys() if key not in ("id", "warning_cnt", "account_state", "create_date")
         }
 
         # post_data 검증 (입력 길이 초과 & NOT NULL 필드의 데이터 값 미 존재)
@@ -312,11 +310,7 @@ class UserUpdatePassword(APIView):
 
         # 현재 패스워드 / 새로 입력한 패스워드 / 새로운 패스워드 확인 3가지를 입력받는다. (post 데이터 확인)
         data = json.loads(request.body)
-        post_data = {
-            key: data[key]
-            for key in data.keys()
-            if key in ("user_pw", "new_user_pw", "check_new_pw")
-        }
+        post_data = {key: data[key] for key in data.keys() if key in ("user_pw", "new_user_pw", "check_new_pw")}
 
         # 패스워드 3가지의 입력값이 규칙에 맞는지 검증한다.
         for key, pw_data in post_data.items():
@@ -417,11 +411,7 @@ class ReportUser(APIView):
 
         # post 데이터 확인
         data = json.loads(request.body)
-        post_data = {
-            key: data[key]
-            for key in data.keys()
-            if key in ("study_id", "reported_id", "description")
-        }
+        post_data = {key: data[key] for key in data.keys() if key in ("study_id", "reported_id", "description")}
 
         study_id = post_data["study_id"]
         reported_id = post_data["reported_id"]
@@ -444,9 +434,7 @@ class ReportUser(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 신고한 사람과 신고 당한 사람이 같은 스터디에 속하는지 확인
-        if not isObjectExists(
-            Applicationlist, user_id__in=[user_index, reported_id], study_id=study_id
-        ):
+        if not isObjectExists(Applicationlist, user_id__in=[user_index, reported_id], study_id=study_id):
             msg = {
                 "state": "fail",
                 "detail": "invalid user. check please user before report",
@@ -484,11 +472,6 @@ class ReportUser(APIView):
 
 # 스터디에 참여한 사용자의 이력서 확인(같은 스터디의 신청자, 팀원들은 모두 확인 가능)
 class UserResumeView(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         # access_token, user_index를 얻어온다.
@@ -524,9 +507,7 @@ class UserResumeView(APIView):
 
         # 1. User Object에서 정보 확인
         user_obj = User.objects.filter(id=user_id)
-        user_data = OrderedDicttoJson(
-            UserSerializerForResume(user_obj, many=True).data, tolist=False
-        )
+        user_data = OrderedDicttoJson(UserSerializerForResume(user_obj, many=True).data, tolist=False)
 
         # 2. 사용자의 기술스택 정보 확인
         # user_tech_id_obj = Usertechlist.objects.filter(user_id=user_id)
@@ -543,12 +524,8 @@ class UserResumeView(APIView):
         # 4. applicationlist Object에서 스터디 참가 신청 시 작성한 내용 확인
         # application_data = OrderedDicttoJson(ApplicationlistSerializer(application_obj, many=True).data, tolist=False)
         # description_data = application_data['description']
-        application_obj = Applicationlist.objects.filter(
-            user_id=user_id, study_id=study_id
-        )
-        description_data = [
-            item["description"] for item in application_obj.values("description")
-        ]
+        application_obj = Applicationlist.objects.filter(user_id=user_id, study_id=study_id)
+        description_data = [item["description"] for item in application_obj.values("description")]
 
         # 프로필 사진의 경로를 확인하기 위해 Profile의 이미지 주소가 저장된 모델을 확인
         user_profile_obj = ProfileImage.objects.get(user_id=user_id)
@@ -568,11 +545,6 @@ class UserResumeView(APIView):
 
 # 특정 유저의 프로필의 정보를 확인할 수 있는 기능
 class UserProfileView(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         user_id = request.GET.get("user_id")
