@@ -13,6 +13,8 @@ from manageuser.models import User
 # 설정에 작성된 값 가져오기
 from django.conf import settings
 
+from manageuser.util.manage import get_user_id
+
 PUBLIC_KEY = getattr(settings, "PUBLIC_KEY", None)
 COOKIE_DOMAIN = getattr(settings, "COOKIE_DOMAIN", None)
 COOKIE_SECURE = getattr(settings, "COOKIE_SECURE", None)
@@ -22,9 +24,7 @@ FRONTEND_SERVER = getattr(settings, "FRONTEND_SERVER", None)
 # jwt 인코딩에 사용될 사설키 정보를 얻어옴
 s3_resource = boto3.resource("s3")
 my_bucket = s3_resource.Bucket(name="deploy-django-api")
-SECRET_FILE_DATA = json.loads(
-    my_bucket.Object("secret/secrets.json").get()["Body"].read()
-)
+SECRET_FILE_DATA = json.loads(my_bucket.Object("secret/secrets.json").get()["Body"].read())
 
 TOKEN_EXP = 300  # 300 seconds
 REFRESH_TOKEN_EXP = 1  # 1 day
@@ -58,14 +58,10 @@ def verify_token(token):
 def create_refresh_token():
 
     payload = {}
-    payload["exp"] = datetime.datetime.utcnow() + datetime.timedelta(
-        days=REFRESH_TOKEN_EXP
-    )
+    payload["exp"] = datetime.datetime.utcnow() + datetime.timedelta(days=REFRESH_TOKEN_EXP)
 
     try:
-        refresh_token = jwt.encode(
-            payload, SECRET_FILE_DATA["PRIVATE_KEY"], algorithm="RS256"
-        )
+        refresh_token = jwt.encode(payload, SECRET_FILE_DATA["PRIVATE_KEY"], algorithm="RS256")
     except Exception as e:
         print("ERROR NAME : {}".format(e), flush=True)
         return False
@@ -164,9 +160,7 @@ def verify_user(access_token, user_index):
         res.status_code = status.HTTP_200_OK
 
         # 쿠키 값 설정
-        res.set_cookie(
-            "access_token", access_token, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN
-        )
+        res.set_cookie("access_token", access_token, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
         res.set_cookie("index", user_index, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
 
         return res
@@ -182,11 +176,9 @@ def verify_user(access_token, user_index):
             # refresh 토큰이 유효할 때
             if verify_refresh_token(refresh_token):
 
-                # manage_user = manage()
-
                 # 새로운 access_token 발급 후
                 payload = {
-                    "user_id": manage_user.get_user_id(user_index),
+                    "user_id": get_user_id(user_index),
                     "user_index": user_index,
                 }
 
@@ -205,9 +197,7 @@ def verify_user(access_token, user_index):
                     secure=COOKIE_SECURE,
                     domain=COOKIE_DOMAIN,
                 )
-                res.set_cookie(
-                    "index", user_index, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN
-                )
+                res.set_cookie("index", user_index, secure=COOKIE_SECURE, domain=COOKIE_DOMAIN)
 
                 return res
 

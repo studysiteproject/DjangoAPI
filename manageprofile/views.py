@@ -6,11 +6,7 @@ from apiserver.util.tools import OrderedDicttoJson, isObjectExists
 from authuser.util.input_data_verify import isNumber, verify_user_url
 from authuser.util.jwt_auth import verify_user
 from managestudy.models import Study
-from manageuser.serializers import (
-    TechnologylistSerializer,
-    UserSerializerForResume,
-    UserurlSerializer,
-)
+from manageuser.serializers import TechnologylistSerializer
 
 from .models import ProfileImage
 from manageuser.models import (
@@ -61,10 +57,7 @@ class UploadImage(APIView):  # 프로필 이미지 업로드
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 파일 이름 부분을(확장자 제외) base64 인코딩 후 저장
-        new_file_name = (
-            hashlib.sha256((filename[0] + str(user_index)).encode("utf-8")).hexdigest()
-            + filename[1]
-        )
+        new_file_name = hashlib.sha256((filename[0] + str(user_index)).encode("utf-8")).hexdigest() + filename[1]
 
         profile_img_name = "{}/{}/{}".format(self.DIR_NAME, user_index, new_file_name)
 
@@ -96,9 +89,6 @@ class UploadImage(APIView):  # 프로필 이미지 업로드
 
 # 닉네임, 이메일, 직업 정보와 같은 기본적인 사용자 정보를 얻어온다.
 class GetUserBasicInfo(APIView):
-
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         user_index = request.GET.get("user_index")
@@ -124,24 +114,32 @@ class GetUserBasicInfo(APIView):
             }
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
-        # Userurl Object에서 닉네임 / 이메일 / 직업 같은 기본 정보만 확인
-        user_obj = User.objects.get(id=user_index)
-        user_basic_data = UserSerializerForResume(user_obj).data
+        # # Userurl Object에서 닉네임 / 이메일 / 직업 같은 기본 정보만 확인
+        # user_obj = User.objects.get(id=user_index)
+        # user_basic_data = UserSerializerForResume(user_obj).data
 
-        # 프로필 사진의 경로를 확인하기 위해 Profile의 이미지 주소가 저장된 모델을 확인
-        user_profile_obj = ProfileImage.objects.get(user_id=user_index)
-        # user_profile_url_data = getattr(user_profile_obj, "img_url")
+        # # 프로필 사진의 경로를 확인하기 위해 Profile의 이미지 주소가 저장된 모델을 확인
+        # user_profile_obj = ProfileImage.objects.get(user_id=user_index)
         # user_basic_data["img_url"] = user_profile_obj.img_url
-        user_basic_data["img_url"] = user_profile_obj.img_url
+
+        # 유저의 기본 정보를 저장
+        user_basic_data = {}
+
+        # 해당 유저의 ProfileImage 정보까지 얻어온다.
+        user_obj = User.objects.prefetch_related("profileimage_set").get(id=user_index)
+
+        # 유저의 기본 정보 설정
+        user_basic_data["user_name"] = user_obj.user_name
+        user_basic_data["user_email"] = user_obj.user_email
+        user_basic_data["user_job"] = user_obj.user_job
+        user_basic_data["warning_cnt"] = user_obj.warning_cnt
+        user_basic_data["img_url"] = user_obj.profileimage_set.first().img_url
 
         return Response(user_basic_data, status=status.HTTP_200_OK)
 
 
 # 로그인한 사용자의 URL 리스트 조회
 class ViewUrlList(APIView):
-
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         user_index = request.GET.get("user_index")
@@ -169,21 +167,13 @@ class ViewUrlList(APIView):
 
         # Userurl Object에서 정보 확인
         user_url_obj = Userurl.objects.filter(user_id=user_index)
-        user_url_data = OrderedDicttoJson(
-            UserurlSerializer(user_url_obj, many=True).data, tolist=True
-        )
-        user_url_list = [item["url"] for item in user_url_data]
+        user_url_list = [item.url for item in user_url_obj]
 
         return Response(user_url_list, status=status.HTTP_200_OK)
 
 
 # URL 추가
 class AddUrl(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         # access_token, user_index를 얻어온다.
@@ -226,11 +216,6 @@ class AddUrl(APIView):
 
 # URL 삭제
 class DeleteUrl(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         # access_token, user_index를 얻어온다.
@@ -281,16 +266,12 @@ class ViewAllTechList(APIView):
     def get(self, request):
 
         technologylist_obj = Technologylist.objects.all()
-
         serializer = TechnologylistSerializer(technologylist_obj, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 # 기술 목록 조회
 class ViewTechList(APIView):
-
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         user_index = request.GET.get("user_index")
@@ -316,18 +297,8 @@ class ViewTechList(APIView):
             }
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
-        # # Usertechlist Object에서 정보 확인
-        # user_tech_id_obj = Usertechlist.objects.filter(user_id=user_index)
-        # user_tech_id_data = OrderedDicttoJson(UsertechlistSerializer(user_tech_id_obj, many=True).data, tolist=True)
-
-        # # 위 과정에서 얻은 tech_id를 가진 행을 모두 출력한다.
-        # user_tech_info_obj = Technologylist.objects.filter(id__in=[tech_item['tech_id'] for tech_item in user_tech_id_data])
-        # user_tech_info_data = OrderedDicttoJson(TechnologylistSerializer(user_tech_info_obj, many=True).data, tolist=True)
-
-        # 2. 사용자의 기술스택 정보 확인
-        user_tech_id_obj = Technologylist.objects.filter(
-            usertechlist__user_id=user_index
-        )
+        # 1. 사용자의 기술스택 정보 확인
+        user_tech_id_obj = Technologylist.objects.filter(usertechlist__user_id=user_index)
         user_tech_info_data = [item for item in user_tech_id_obj.values()]
 
         return Response(user_tech_info_data, status=status.HTTP_200_OK)
@@ -335,11 +306,6 @@ class ViewTechList(APIView):
 
 # 기술 목록에 기술 추가
 class AddTech(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         # access_token, user_index를 얻어온다.
@@ -389,11 +355,6 @@ class AddTech(APIView):
 
 # 기술 목록에서 기술 삭제
 class DeleteTech(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         # access_token, user_index를 얻어온다.
@@ -426,17 +387,12 @@ class DeleteTech(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 기술 스택에 추가한 기술이 아닌지 확인
-        if (
-            isObjectExists(Usertechlist, user_id=user_index, tech_id=tech_index)
-            is False
-        ):
+        if isObjectExists(Usertechlist, user_id=user_index, tech_id=tech_index) is False:
             msg = {"state": "fail", "detail": "invalid tech. check tech_index please"}
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 삭제를 위해 해당 tech의 오브젝트를 얻어온다.
-        tech_object = Usertechlist.objects.filter(
-            user_id=user_index, tech_id=tech_index
-        )
+        tech_object = Usertechlist.objects.filter(user_id=user_index, tech_id=tech_index)
 
         # Tech 삭제 동작
         try:
@@ -451,11 +407,6 @@ class DeleteTech(APIView):
 
 # 즐겨찾기한 스터디 목록 확인
 class ViewFavoriteList(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         # access_token, user_index를 얻어온다.
@@ -472,22 +423,13 @@ class ViewFavoriteList(APIView):
 
         # Userurl Object에서 정보 확인
         user_favorite_obj = UserFavorite.objects.filter(user_id=user_index)
-        # favorite_serializers = UserFavoriteSerializer(user_favorite_obj, many=True)
-        # user_favorite_data = OrderedDicttoJson(favorite_serializers.data, tolist=True)
-        user_favorite_list = [
-            item["study_id"] for item in user_favorite_obj.values("study_id")
-        ]
+        user_favorite_list = [item["study_id"] for item in user_favorite_obj.values("study_id")]
 
         return Response(user_favorite_list, status=status.HTTP_200_OK)
 
 
 # 스터디 즐겨찾기 하기
 class AddFavorite(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         # access_token, user_index를 얻어온다.
@@ -540,11 +482,6 @@ class AddFavorite(APIView):
 
 # 스터디 즐겨찾기 해제
 class DeleteFavorite(APIView):
-
-    #  auth = jwt_auth()
-    # manage_user = manage()
-    # user_data_verify = input_data_verify()
-
     def get(self, request):
 
         # access_token, user_index를 얻어온다.
@@ -582,15 +519,14 @@ class DeleteFavorite(APIView):
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
         # 삭제를 위해 해당 즐겨찾기의 오브젝트를 얻어온다.
-        favorite_object = UserFavorite.objects.filter(
-            user_id=user_index, study_id=study_id
-        )
+        favorite_object = UserFavorite.objects.filter(user_id=user_index, study_id=study_id)
 
         # Tech 삭제 동작
         try:
             favorite_object.delete()
             msg = {"state": "success", "detail": "favorite study delete successed"}
             return Response(msg, status=status.HTTP_200_OK)
+
         except Exception as e:
             print("ERROR NAME : {}".format(e), flush=True)
             msg = {"state": "fail", "detail": "favorite study delete failed"}
